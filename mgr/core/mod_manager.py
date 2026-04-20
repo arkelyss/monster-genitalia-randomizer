@@ -1,27 +1,61 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 import logging
 from pathlib import Path
-
-from pydantic import BaseModel
 
 from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_MOD_TYPES, VALID_MOD_PATH_PATTERN
 
 logger = logging.getLogger(__name__)
 
-class ModManifest(BaseModel):
+class GenitaliaType(Enum):
+    UNKNOWN = "unkown"
+    SLIT = "slit"
+    PENIS = "penis"
+    VAGINA = "vagina"
+    TESTICLES = "testicles"
+
+class GenitaliaState(Enum):
+    UNKNOWN = "unkown"
+    ERECT = "erect"
+    FLACID = "flacid"
+    DISCHARGE = "discharge"
+
+class MonsterSex(Enum):
+    UNKNOWN = "unkown"
+    MALE = "male"
+    FEMALE = "female"
+    INTERSEX = "intersex"
+    NULL = "null"
+
+class ModState(Enum):
+    UNKNOWN = "unkown"
+    INSTALLED = "installed"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    FOREIGN = "foreign"
+    
+@dataclass
+class ModInfo:
     name: str
+    author: str
+
     monster_id: str
     variant_id: str
-    active: bool = False
-    author: str = ""
+    files: list[str]
+
+    monster_sex: MonsterSex = MonsterSex.UNKNOWN
+    genitalia_type: GenitaliaType = GenitaliaType.UNKNOWN
+    genitalia_state: GenitaliaState = GenitaliaState.UNKNOWN
+
+    has_manifest: bool = False
 
 @dataclass
 class Mods:
-    installed: dict[str, dict[str, dict[str, str]]] = {}
-    active: dict[str, dict[str, dict[str, str]]] = {}
-    inactive: dict[str, dict[str, dict[str, str]]] = {}
+    installed: list[ModInfo] = field(default_factory=list)
+    active: list[ModInfo] = field(default_factory=list)
+    inactive: list[ModInfo] = field(default_factory=list)
+    foreign: list[ModInfo] = field(default_factory=list)
 
-    foreign_active: dict[str, dict[str, dict[str, str]]] = {}
 
 class ModManager():
     def __init__(self, mhw_dir: Path, mgr_mods_dir: Path):
@@ -29,7 +63,6 @@ class ModManager():
         self._mhw_mods_dir: Path = mhw_dir / NATIVEPC_EM_DIR
         self._mgr_mods_dir: Path = mgr_mods_dir
 
-        # Instance of Mods holds dictionary trees with path parts for keys.
         self._mods: Mods = Mods()
 
     @property
@@ -49,8 +82,25 @@ class ModManager():
             if path.suffix not in SUPPORTED_MOD_TYPES:
                 logger.debug("Invalid file of type '%s' found inside installed mod at '%s'", path.suffix, path.parent)
                 continue
+
+            pattern_match = VALID_MOD_PATH_PATTERN.match(str(path))
+            if not pattern_match:
+                logger.debug("Valid file '%s' discovered at invalid location in '%s'", path.name, path.parent)
+                continue
+
+            monster_id, variant_id, mod_name, file_name = pattern_match.groups()
+
+    def _load_active_mods(self):
+        self._mods.active.clear()
+
+        for path in self._mhw_mods_dir.iterdir():
+            if not path.is_file():
+                continue
+            if path.suffix not in SUPPORTED_MOD_TYPES:
+                logger.debug("Invalid file of type '%s' found inside installed mod at '%s'", path.suffix, path.parent)
+                continue
             if not path.name == MANIFEST_FILE_NAME:
-                logger.debug("Unexpected '%s' file discovered at '%s' while looking for MGR manifest file.Expected '%s', got '%s' instead.", path.suffix, path.parent, MANIFEST_FILE_NAME, path.name)
+                logger.debug("Unexpected '%s' file discovered at '%s' while looking for MGR manifest. Expected '%s', got '%s' instead.", path.suffix, path.parent, MANIFEST_FILE_NAME, path.name)
                 continue
 
             pattern_match = VALID_MOD_PATH_PATTERN.match(str(path))
@@ -59,13 +109,6 @@ class ModManager():
                 continue
 
             monster_id, variant_id, mod_name, file_name = pattern_match.groups()
-            self._mods.installed \
-                .setdefault(monster_id, {}) \
-                .setdefault(variant_id, {}) \
-                [mod_name] = file_name
-
-    def _load_active_mods(self):
-        raise NotImplementedError("Loading active mods logic has not yet been implemented.")
 
     def _validate_manifest(self) -> bool:
         # May want to write a more generalized "validate_mod" or something to handle all the validation logic.
