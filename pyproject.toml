@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "monster-genitalia-randomizer"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.0.0",
+    "PySide6",
+    "platformdirs",
+    "py7zr",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["mgr"]
