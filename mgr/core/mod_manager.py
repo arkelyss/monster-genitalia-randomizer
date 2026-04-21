@@ -8,53 +8,55 @@ from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_MO
 logger = logging.getLogger(__name__)
 
 class GenitaliaType(Enum):
-    UNKNOWN = "unkown"
+    UNDEFINED = "undefined"
     SLIT = "slit"
     PENIS = "penis"
     VAGINA = "vagina"
     TESTICLES = "testicles"
 
 class GenitaliaState(Enum):
-    UNKNOWN = "unkown"
+    UNDEFINED = "undefined"
     ERECT = "erect"
     FLACID = "flacid"
     DISCHARGE = "discharge"
 
 class MonsterSex(Enum):
-    UNKNOWN = "unkown"
+    UNDEFINED = "undefined"
     MALE = "male"
     FEMALE = "female"
     INTERSEX = "intersex"
     NULL = "null"
 
 class ModState(Enum):
-    UNKNOWN = "unkown"
+    UNDEFINED = "undefined"
     INSTALLED = "installed"
     ACTIVE = "active"
     INACTIVE = "inactive"
     FOREIGN = "foreign"
     
 @dataclass
-class ModInfo:
+class ModManifest:
     name: str
-    author: str
+    author: str | None
+    version: float
+    state: ModState
 
     monster_id: str
     variant_id: str
     files: list[str]
 
-    monster_sex: MonsterSex = MonsterSex.UNKNOWN
-    genitalia_type: GenitaliaType = GenitaliaType.UNKNOWN
-    genitalia_state: GenitaliaState = GenitaliaState.UNKNOWN
-
-    has_manifest: bool = False
+    monster_sex: MonsterSex = MonsterSex.UNDEFINED
+    genitalia_type: GenitaliaType = GenitaliaType.UNDEFINED
+    genitalia_state: GenitaliaState = GenitaliaState.UNDEFINED
 
 @dataclass
 class Mods:
-    installed: list[ModInfo] = field(default_factory=list)
-    active: list[ModInfo] = field(default_factory=list)
-    inactive: list[ModInfo] = field(default_factory=list)
-    foreign: list[ModInfo] = field(default_factory=list)
+    installed: list[ModManifest] = field(default_factory=list)
+
+    active: list[ModManifest] = field(default_factory=list)
+    inactive: list[ModManifest] = field(default_factory=list)
+    
+    foreign: list[ModManifest] = field(default_factory=list)
 
 
 class ModManager():
