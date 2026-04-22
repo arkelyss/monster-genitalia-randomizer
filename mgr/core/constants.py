@@ -50,4 +50,4 @@ SUPPORTED_MOD_TYPES: list[str] = [".mod3", ".mrl3", ".ctc", ".tex", ".toml"]
 
 # Matches the following pattern: em/em##/##/dirname/filename.suffix
 # Use '?P<>' so match.groupdict() can be used later for easy dictionary population of directory structures.
-VALID_MOD_PATH_PATTERN: re.Pattern[str] = re.compile(r"^(em\d+)[/\\](\d+)[/\\]([^/\\]+)[/\\]([^/\\]+\.[^/\\]+)$")
+VALID_MOD_DIR_PATTERN: re.Pattern[str] = re.compile(r"^(em\d+)[/\\](\d+)[/\\]([^/\\]+)[/\\]([^/\\]+\.[^/\\]+)$")

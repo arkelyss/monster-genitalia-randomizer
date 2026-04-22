@@ -1,13 +1,17 @@
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 import logging
+import os
 from pathlib import Path
+from typing import Any
+from uuid import UUID
 
 from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_MOD_TYPES, VALID_MOD_PATH_PATTERN
 
 logger = logging.getLogger(__name__)
 
-class GenitaliaType(Enum):
+class GenitaliaFeatures(Enum):
     UNDEFINED = "undefined"
     SLIT = "slit"
     PENIS = "penis"
@@ -17,46 +21,50 @@ class GenitaliaType(Enum):
 class GenitaliaState(Enum):
     UNDEFINED = "undefined"
     ERECT = "erect"
-    FLACID = "flacid"
+    FLACCID = "flacid"
     DISCHARGE = "discharge"
-
-class MonsterSex(Enum):
-    UNDEFINED = "undefined"
-    MALE = "male"
-    FEMALE = "female"
-    INTERSEX = "intersex"
-    NULL = "null"
+    GLOW = "glow"
 
 class ModState(Enum):
-    UNDEFINED = "undefined"
-    INSTALLED = "installed"
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    FOREIGN = "foreign"
+    UNDETERMINED = "undetermined"
+    DEPLOYED = "deployed"
+    STAGED = "staged"
     
 @dataclass
 class ModManifest:
-    name: str
-    author: str | None
-    version: float
-    state: ModState
-
+    group_id: int | None = None
+    uuid: UUID
     monster_id: str
     variant_id: str
-    files: list[str]
 
-    monster_sex: MonsterSex = MonsterSex.UNDEFINED
-    genitalia_type: GenitaliaType = GenitaliaType.UNDEFINED
+    mod_name: str = ""
+    mod_creator: str = ""
+    version: str = "0.0.0"
+
+    genitalia_features: GenitaliaFeatures = GenitaliaFeatures.UNDEFINED
     genitalia_state: GenitaliaState = GenitaliaState.UNDEFINED
 
 @dataclass
-class Mods:
-    installed: list[ModManifest] = field(default_factory=list)
+class LoadedMod():
+    monster_id: str = ""
+    variant_id: str = ""
+    manifest: ModManifest | None = None
+    state: ModState = ModState.UNDETERMINED
+    mod_dir: Path | None = None
+    files: list[str] = field(default_factory=list)
 
-    active: list[ModManifest] = field(default_factory=list)
-    inactive: list[ModManifest] = field(default_factory=list)
-    
-    foreign: list[ModManifest] = field(default_factory=list)
+
+@dataclass
+class Mods:
+    managed: list[LoadedMod] = field(default_factory=list)
+    unmanaged: list[LoadedMod] = field(default_factory=list)
+
+    @property
+    def deployed(self):
+        return [mod for mod ]
+
+    @property
+    def staged(self):
 
 
 class ModManager():
@@ -72,25 +80,69 @@ class ModManager():
         return self._mods
 
     def load_mods(self):
-        self._load_installed_mods()
+        self._load_managed_mods()
         self._load_active_mods()
 
-    def _load_installed_mods(self):
-        self._mods.installed.clear()
-
-        for path in self._mgr_mods_dir.iterdir():
+    def _load_managed_mods(self):
+        loaded_mod = LoadedMod()
+        valid_files: defaultdict[str, Any] = defaultdict(dict)  # pyright: ignore[reportExplicitAny]
+        invalid_files: list[Path] = []
+        unexpected_file_dirs: list[Path] = []  # Create a placeholder for valid files in unexpected locations (fringe case)
+  
+        for dir_name, sub_dirs, file_names in os.walk(self._mgr_mods_dir):
+            dir_name = Path(dir_name)
+            files = [root_dir / name for name in file_names]
+            
             if not path.is_file():
                 continue
             if path.suffix not in SUPPORTED_MOD_TYPES:
-                logger.debug("Invalid file of type '%s' found inside installed mod at '%s'", path.suffix, path.parent)
+                logger.debug("File with unsupported type '%s' found at '%s'", path.suffix, path)
+                invalid_files.append(path)
                 continue
-
-            pattern_match = VALID_MOD_PATH_PATTERN.match(str(path))
-            if not pattern_match:
-                logger.debug("Valid file '%s' discovered at invalid location in '%s'", path.name, path.parent)
+            if not VALID_MOD_PATH_PATTERN.match(str(path)):
+                logger.debug("Mod file '%s' discovered in unexpected location at '%s'", path.name, path)
+                unexpected_file_dirs.append(path)
                 continue
+            
+            if path.name == MANIFEST_FILE_NAME:
+                mod_info["manifest_file"] = path
 
-            monster_id, variant_id, mod_name, file_name = pattern_match.groups()
+        if not valid_files:
+            return
+
+        if valid_files:
+            for parent_dir, files in valid_files.items():
+                
+
+                file_names = {path.name for path in files}  # Create set for efficient lookup
+                manifest = ModManifest() if not MANIFEST_FILE_NAME in file_names:
+
+
+                manifest_file = None
+                for path in files:
+                    if path.name == MANIFEST_FILE_NAME:
+                        manifest_file = path
+                    
+
+
+                pattern_match = VALID_MOD_PATH_PATTERN.match(str(path))
+                if pattern_match:
+                    monster_id, variant_id, mod_name, file_name = pattern_match.groups()
+                    loaded_mod = LoadedMod(
+                        monster_id=monster_id,
+                        variant_id=variant_id,
+                        manifest=ModManifest
+                        
+                    )
+                    self._mods.managed.append
+
+            
+
+
+    def _read_manifest(self, manifest_file: Path) -> ModManifest:
+
+
+
 
     def _load_active_mods(self):
         self._mods.active.clear()
