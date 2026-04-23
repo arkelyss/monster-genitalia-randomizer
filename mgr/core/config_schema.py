@@ -7,10 +7,9 @@ from mgr.core.constants import MHW_DIR_NAME, MHW_EXE_NAME
 
 class ConfigSchema(BaseModel):
     """Immutable Pydantic model defining MGR's config schema and default values."""
-    # We're freezing this model to avoid mutation. Extra keys are also forbidden to avoid corruption.
+    # We're freezing this model to avoid mutation. Extra keys are also forbidden to prevent corruption.
     model_config: ClassVar[ConfigDict] = ConfigDict(extra='forbid', frozen=True)
 
-    # Default keys, types, and values.
     mhw_dir: Path | None = Field(
         default=None,
         json_schema_extra={
@@ -21,7 +20,7 @@ class ConfigSchema(BaseModel):
             "mhw_exe_name": MHW_EXE_NAME
             }
         )
-    mods_dir: Path | None = Field(default=None, json_schema_extra={"requires_value": True, "requires_path": True})
+    mgr_mods_dir: Path | None = Field(default=None, json_schema_extra={"requires_value": True, "requires_path": True})
     randomized: bool = False
     seed: PositiveInt = 1
 

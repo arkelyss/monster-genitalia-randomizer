@@ -7,8 +7,6 @@ from pathlib import Path
 from typing import Any
 import uuid
 
-from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_FILE_TYPES, VALID_MOD_PATH_STRUCTURE
-
 logger = logging.getLogger(__name__)
 
 class GenitaliaFeatures(Enum):
@@ -66,10 +64,10 @@ class Mods:
 
 
 class ModManager():
-    def __init__(self, mhw_dir: Path, mgr_mods_dir: Path):
+    def __init__(self, mhw_dir: Path, mhw_mods_dir: Path, mgr_mods_dir: Path):
         self._mhw_dir: Path = mhw_dir
-        self._mhw_mods_dir: Path = mhw_dir / NATIVEPC_EM_DIR
-        self._mgr_mods_dir: Path = mgr_mods_dir / NATIVEPC_EM_DIR
+        self._mhw_mods_dir: Path = mhw_dir / MHW_MODS_DIR_NAME
+        self._mgr_mods_dir: Path = mgr_mods_dir
 
         self._mods: Mods = Mods()
 
@@ -85,7 +83,7 @@ class ModManager():
             current_dir = Path(current_dir)
             relative_dir = current_dir.relative_to(self._mgr_mods_dir)
 
-            path_match = VALID_MOD_PATH_STRUCTURE.match(str(relative_dir))
+            path_match = MOD_DIR_TREE.match(str(relative_dir))
             if not path_match:
                 continue
                       
@@ -93,6 +91,7 @@ class ModManager():
             valid_files = [name for name in file_names if Path(name).suffix in SUPPORTED_FILE_TYPES]
             invalid_files = [Path(name) for name in file_names if Path(name).suffix not in SUPPORTED_FILE_TYPES]
             state: ModState = self._check_mod_state()
+
             manifest_file = current_dir / MANIFEST_FILE_NAME
             manifest = ModManifest()
 
@@ -115,8 +114,7 @@ class ModManager():
         raise NotImplementedError("Logic for loading manifest file not yet implemented")
 
     def _check_mod_state(self, mod_dir: Path):
-        
-        expected_deployed_path = self._mhw_mods_dir
+        expected_deploy_dir = self._mhw_mods_dir
 
 
 

@@ -7,7 +7,7 @@ import sys
 import logging
 from PySide6.QtWidgets import QApplication, QWizard
 from mgr.core.config_schema import ConfigSchema
-from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR
+from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR, MHW_MODS_DIR_NAME
 from mgr.core.app_context import AppContext
 from mgr.core.exceptions import MissingConfigFileError
 from mgr.gui.main_window import MainWindow
@@ -110,7 +110,7 @@ def _parse_args() -> argparse.Namespace:
     return args
 
 
-def build_user_data_dirs(data_dirs: list[Path]) -> None:
+def create_dirs(data_dirs: list[Path]) -> None:
     logger.debug("Creating user data directories: '%s'", f"{data_dirs}")
     for path in data_dirs:
         path.mkdir(exist_ok=True, parents=True)
@@ -122,8 +122,7 @@ def main() -> None:
 
     _ = cast(ArgTypes, _parse_args())  # Might use later for passing cli args to startup
     
-    data_dirs: list[Path] = [LOG_DIR, MGR_MODS_DIR, CONFIG_DIR]
-    build_user_data_dirs(data_dirs)
+    create_dirs([LOG_DIR, MGR_MODS_DIR, CONFIG_DIR])
 
     rotating_file_handler = RotatingFileHandler(LOG_FILE, maxBytes=5242880, backupCount=3)
     rotating_file_handler.setLevel(logging.WARNING)
@@ -142,12 +141,17 @@ def main() -> None:
         config_manager.generate_default_config()
     
     mhw_dir = config_manager.config.mhw_dir
-    mods_dir = config_manager.config.mods_dir
+    mgr_mods_dir = config_manager.config.mgr_mods_dir
+    
+    if not mhw_dir:
+        raise RuntimeError("Monster Hunter World paths were not resolved before ModManager initialization.")
+    if not mgr_mods_dir:
+        raise RuntimeError("MGR mod path was not resolved before ModManager initialization.")
 
-    if mhw_dir is None or mods_dir is None:
-        raise RuntimeError("Required config paths were not resolved before ModManager initialization.")
+    mhw_mods_dir = mhw_dir / MHW_MODS_DIR_NAME
+    create_dirs([mhw_mods_dir])
 
-    mod_manager = ModManager(mhw_dir, mods_dir)
+    mod_manager = ModManager(mhw_dir, mhw_mods_dir, mgr_mods_dir)
     app_context = AppContext(config_manager, mod_manager)
  
     window = MainWindow(app_context)
