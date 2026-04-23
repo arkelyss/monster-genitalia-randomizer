@@ -10,22 +10,6 @@ SYSTEM_ROOT: Path = Path(Path.cwd().anchor)
 APP_NAME = "Monster Genitalia Randomizer"
 
 
-# User data directories and filenames.
-USER_DATA_DIR = Path(user_data_dir(APP_NAME))
-
-LOG_FILE_NAME = "mgr.log"
-LOG_DIR = USER_DATA_DIR / "logs"
-LOG_FILE = LOG_DIR / LOG_FILE_NAME
-
-CONFIG_FILE_NAME = "config.json"
-CONFIG_DIR = USER_DATA_DIR / "configs"
-CONFIG_FILE = CONFIG_DIR / CONFIG_FILE_NAME
-
-MANIFEST_FILE_NAME = "mgr_manifest.toml"
-
-MGR_MODS_DIR = USER_DATA_DIR / "mods"
-
-
 # Useful MHW information such as directories, filenames, and potential installation locations.
 MHW_DIR_NAME = "Monster Hunter World"
 MHW_EXE_NAME = "MonsterHunterWorld.exe"
@@ -43,11 +27,27 @@ POSSIBLE_MHW_INSTALL_DIRS: list[Path] = [
 ]
 
 
+# User data directories and filenames.
+USER_DATA_DIR = Path(user_data_dir(APP_NAME))
+
+LOG_FILE_NAME = "mgr.log"
+LOG_DIR = USER_DATA_DIR / "logs"
+LOG_FILE = LOG_DIR / LOG_FILE_NAME
+
+CONFIG_FILE_NAME = "config.json"
+CONFIG_DIR = USER_DATA_DIR / "configs"
+CONFIG_FILE = CONFIG_DIR / CONFIG_FILE_NAME
+
+MANIFEST_FILE_NAME = "mgr_manifest.toml"
+
+MGR_MODS_DIR = USER_DATA_DIR / "mods"
+
+
 # MGR-specific helpers such as supported archive/mod suffixes and regex path validation patterns, 
 SUPPORTED_ARCHIVE_TYPES: list[str] = [".zip", ".7z"]
-SUPPORTED_MOD_TYPES: list[str] = [".mod3", ".mrl3", ".ctc", ".tex", ".toml"]
+SUPPORTED_FILE_TYPES: list[str] = [".mod3", ".mrl3", ".ctc", ".tex", ".toml"]
 
 
 # Matches the following pattern: em/em##/##/dirname/filename.suffix
 # Use '?P<>' so match.groupdict() can be used later for easy dictionary population of directory structures.
-VALID_MOD_DIR_PATTERN: re.Pattern[str] = re.compile(r"^(em\d+)[/\\](\d+)[/\\]([^/\\]+)[/\\]([^/\\]+\.[^/\\]+)$")
+VALID_MOD_PATH_STRUCTURE: re.Pattern[str] = re.compile(r"^em(\d+)[/\\](\d+)[/\\]([^/\\]+)$")
