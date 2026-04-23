@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 import uuid
 
+from mgr.core.constants import MANIFEST_FILE_NAME, MOD_DIR_TREE, SUPPORTED_FILE_TYPES
+
 logger = logging.getLogger(__name__)
 
 class GenitaliaFeatures(Enum):
@@ -23,9 +25,8 @@ class GenitaliaStates(Enum):
     GLOWING = "glow"
 
 class ModState(Enum):
-    UNKNOWN = "unkown"
     DEPLOYED = "deployed"
-    STAGED = "staged"
+    UNDEPLOYED = "undeployed"
     
 @dataclass
 class ModManifest:
@@ -66,7 +67,7 @@ class Mods:
 class ModManager():
     def __init__(self, mhw_dir: Path, mhw_mods_dir: Path, mgr_mods_dir: Path):
         self._mhw_dir: Path = mhw_dir
-        self._mhw_mods_dir: Path = mhw_dir / MHW_MODS_DIR_NAME
+        self._mhw_mods_dir: Path = mhw_mods_dir
         self._mgr_mods_dir: Path = mgr_mods_dir
 
         self._mods: Mods = Mods()
@@ -76,21 +77,27 @@ class ModManager():
         return self._mods
 
     def load_mods(self):
-        self._load_managed_mods()
+        self._load_mgr_mods()
+        self._load_mhw_mods()
 
     def _load_managed_mods(self):
         for current_dir, sub_dir_names, file_names in os.walk(self._mgr_mods_dir):
             current_dir = Path(current_dir)
             relative_dir = current_dir.relative_to(self._mgr_mods_dir)
+            symlink_in_mhw = self._mhw_mods_dir / current_dir.parent / "mod"
 
-            path_match = MOD_DIR_TREE.match(str(relative_dir))
+            path_match = MOD_DIR_TREE.match(str(current_dir))
             if not path_match:
                 continue
+
+            if symlink_in_mhw.is_symlink() and symlink_in_mhw.resolve() == current_dir:
+                state = ModState.DEPLOYED
+            else:
+                state = ModState.UNDEPLOYED
                       
             monster_id, variant_id, dir_name = path_match.groups()
-            valid_files = [name for name in file_names if Path(name).suffix in SUPPORTED_FILE_TYPES]
+            valid_file = [name for name in file_names if Path(name).suffix in SUPPORTED_FILE_TYPES]
             invalid_files = [Path(name) for name in file_names if Path(name).suffix not in SUPPORTED_FILE_TYPES]
-            state: ModState = self._check_mod_state()
 
             manifest_file = current_dir / MANIFEST_FILE_NAME
             manifest = ModManifest()
@@ -98,23 +105,29 @@ class ModManager():
             if manifest_file.exists():
                 manifest = self._read_manifest(manifest_file)
 
-            self._mods.managed.append(
+            managed_mods.append(
                 LoadedMod(
                     dir_id=dir_name,
                     monster_id=int(monster_id),
                     variant_id=int(variant_id),
                     manifest=manifest,
-                    state=ModState.UNKNOWN,
+                    state=state,
                     filenames=valid_files
                 )
             )
+
+        if not managed_mods:
+            return
+        
+
 
 
     def _read_manifest(self, manifest_file: Path) -> ModManifest:
         raise NotImplementedError("Logic for loading manifest file not yet implemented")
 
     def _check_mod_state(self, mod_dir: Path):
-        expected_deploy_dir = self._mhw_mods_dir
+        mod_endpoint = mod_dir.parent / "mod"
+        expected_deploy_path = self._mhw_mods_dir
 
 
 
