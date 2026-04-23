@@ -5,9 +5,9 @@ import logging
 import os
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+import uuid
 
-from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_MOD_TYPES, VALID_MOD_PATH_PATTERN
+from mgr.core.constants import MANIFEST_FILE_NAME, NATIVEPC_EM_DIR, SUPPORTED_FILE_TYPES, VALID_MOD_PATH_STRUCTURE
 
 logger = logging.getLogger(__name__)
 
@@ -18,40 +18,38 @@ class GenitaliaFeatures(Enum):
     VAGINA = "vagina"
     TESTICLES = "testicles"
 
-class GenitaliaState(Enum):
+class GenitaliaStates(Enum):
     UNDEFINED = "undefined"
     ERECT = "erect"
-    FLACCID = "flacid"
-    DISCHARGE = "discharge"
-    GLOW = "glow"
+    DISCHARGING = "discharging"
+    GLOWING = "glow"
 
 class ModState(Enum):
-    UNDETERMINED = "undetermined"
+    UNKNOWN = "unkown"
     DEPLOYED = "deployed"
     STAGED = "staged"
     
 @dataclass
 class ModManifest:
-    group_id: int | None = None
-    uuid: UUID
-    monster_id: str
-    variant_id: str
+    mod_id: uuid.UUID = field(default_factory=uuid.uuid4)
+    group_id: uuid.UUID | None = None
 
-    mod_name: str = ""
-    mod_creator: str = ""
+    name: str = ""
+    creator: str = ""
     version: str = "0.0.0"
 
-    genitalia_features: GenitaliaFeatures = GenitaliaFeatures.UNDEFINED
-    genitalia_state: GenitaliaState = GenitaliaState.UNDEFINED
+    genitalia_features: dict[str, bool] = field(default_factory=lambda: {feature.value: False for feature in GenitaliaFeatures})
+    genitalia_states: dict[str, bool] = field(default_factory=lambda: {feature.value: False for feature in GenitaliaStates})
 
 @dataclass
 class LoadedMod():
-    monster_id: str = ""
-    variant_id: str = ""
+    dir_id: str
+    monster_id: int = -1
+    variant_id: int = -1
     manifest: ModManifest | None = None
-    state: ModState = ModState.UNDETERMINED
-    mod_dir: Path | None = None
-    files: list[str] = field(default_factory=list)
+    state: ModState = ModState.UNKNOWN
+    path: Path | None = None
+    filenames: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -71,7 +69,7 @@ class ModManager():
     def __init__(self, mhw_dir: Path, mgr_mods_dir: Path):
         self._mhw_dir: Path = mhw_dir
         self._mhw_mods_dir: Path = mhw_dir / NATIVEPC_EM_DIR
-        self._mgr_mods_dir: Path = mgr_mods_dir
+        self._mgr_mods_dir: Path = mgr_mods_dir / NATIVEPC_EM_DIR
 
         self._mods: Mods = Mods()
 
@@ -81,65 +79,44 @@ class ModManager():
 
     def load_mods(self):
         self._load_managed_mods()
-        self._load_active_mods()
 
     def _load_managed_mods(self):
-        loaded_mod = LoadedMod()
-        valid_files: defaultdict[str, Any] = defaultdict(dict)  # pyright: ignore[reportExplicitAny]
-        invalid_files: list[Path] = []
-        unexpected_file_dirs: list[Path] = []  # Create a placeholder for valid files in unexpected locations (fringe case)
-  
-        for dir_name, sub_dirs, file_names in os.walk(self._mgr_mods_dir):
-            dir_name = Path(dir_name)
-            files = [root_dir / name for name in file_names]
-            
-            if not path.is_file():
+        for current_dir, sub_dir_names, file_names in os.walk(self._mgr_mods_dir):
+            current_dir = Path(current_dir)
+            relative_dir = current_dir.relative_to(self._mgr_mods_dir)
+
+            path_match = VALID_MOD_PATH_STRUCTURE.match(str(relative_dir))
+            if not path_match:
                 continue
-            if path.suffix not in SUPPORTED_MOD_TYPES:
-                logger.debug("File with unsupported type '%s' found at '%s'", path.suffix, path)
-                invalid_files.append(path)
-                continue
-            if not VALID_MOD_PATH_PATTERN.match(str(path)):
-                logger.debug("Mod file '%s' discovered in unexpected location at '%s'", path.name, path)
-                unexpected_file_dirs.append(path)
-                continue
-            
-            if path.name == MANIFEST_FILE_NAME:
-                mod_info["manifest_file"] = path
+                      
+            monster_id, variant_id, dir_name = path_match.groups()
+            valid_files = [name for name in file_names if Path(name).suffix in SUPPORTED_FILE_TYPES]
+            invalid_files = [Path(name) for name in file_names if Path(name).suffix not in SUPPORTED_FILE_TYPES]
+            state: ModState = self._check_mod_state()
+            manifest_file = current_dir / MANIFEST_FILE_NAME
+            manifest = ModManifest()
 
-        if not valid_files:
-            return
+            if manifest_file.exists():
+                manifest = self._read_manifest(manifest_file)
 
-        if valid_files:
-            for parent_dir, files in valid_files.items():
-                
-
-                file_names = {path.name for path in files}  # Create set for efficient lookup
-                manifest = ModManifest() if not MANIFEST_FILE_NAME in file_names:
-
-
-                manifest_file = None
-                for path in files:
-                    if path.name == MANIFEST_FILE_NAME:
-                        manifest_file = path
-                    
-
-
-                pattern_match = VALID_MOD_PATH_PATTERN.match(str(path))
-                if pattern_match:
-                    monster_id, variant_id, mod_name, file_name = pattern_match.groups()
-                    loaded_mod = LoadedMod(
-                        monster_id=monster_id,
-                        variant_id=variant_id,
-                        manifest=ModManifest
-                        
-                    )
-                    self._mods.managed.append
-
-            
+            self._mods.managed.append(
+                LoadedMod(
+                    dir_id=dir_name,
+                    monster_id=int(monster_id),
+                    variant_id=int(variant_id),
+                    manifest=manifest,
+                    state=ModState.UNKNOWN,
+                    filenames=valid_files
+                )
+            )
 
 
     def _read_manifest(self, manifest_file: Path) -> ModManifest:
+        raise NotImplementedError("Logic for loading manifest file not yet implemented")
+
+    def _check_mod_state(self, mod_dir: Path):
+        
+        expected_deployed_path = self._mhw_mods_dir
 
 
 
