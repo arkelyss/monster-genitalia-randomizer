@@ -1,10 +1,8 @@
-from collections import defaultdict
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, auto
 import logging
 import os
 from pathlib import Path
-from typing import Any
 import uuid
 
 from mgr.core.constants import MANIFEST_FILE_NAME, MOD_DIR_TREE, SUPPORTED_FILE_TYPES
@@ -28,11 +26,12 @@ class GenitaliaStates(Enum):
 class ModManifest:
     mod_uuid: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    display_name: str | None = None
+    display_name: str | None = None  # Dev note: Name shown in user interfaces?
     version: str = "0.0.0"  # Dev note: For now, 0.0.0 will indicate a default MGR-generated manifest. Change version to signal user-modified manifest.
     creator: str | None = None
     description: str | None = None
-
+    
+    # Dev note: Features and states live, for now, in the manifest file as the source of truth.
     genitalia_features: dict[str, bool] = field(default_factory=lambda: {feature.value: False for feature in GenitaliaFeatures})
     genitalia_states: dict[str, bool] = field(default_factory=lambda: {state.value: False for state in GenitaliaStates})
 
@@ -44,8 +43,8 @@ class LoadedMod:
     managed: bool  # True: Exists inside MGR's mod dir | False: Exists inside MHW's mod folder and not MGR's.
     deployed: bool  # True: Symlink inside MHW mod path points to existing mod in MGR mod folder.
 
-    mod_dir: Path  # The mod's actual location.
-    deploy_dir: Path  # Path to deploy a symlink at.
+    mod_path: Path  # The mod's actual location.
+    deploy_path: Path  # Path to deploy a symlink at.
 
     files: list[Path] | None  # List the names of valid files in the mod directory.
     invalid_files: list[Path] | None  # List the names of invalid files in the mod directory.
@@ -61,21 +60,23 @@ class ModManager():
         self._mhw_mods_dir: Path = mhw_mods_dir
         self._mgr_mods_dir: Path = mgr_mods_dir
 
+        self._all_mods: list[LoadedMod] = []
+
     @property
     def all_mods(self):
-        raise NotImplementedError("Logic not yet implemented")
+        return self._all_mods
 
     @property
     def managed_mods(self):
-        raise NotImplementedError("Logic not yet implemented")
+        return [mod for mod in self._all_mods if mod.managed]
 
     @property
     def foreign_mods(self):
-        raise NotImplementedError("Logic not yet implemented")
+        return [mod for mod in self._all_mods if not mod.managed]
 
     @property
     def deployed_mods(self):
-        raise NotImplementedError("Logic not yet implemented")
+        return [mod for mod in self._all_mods if mod.deployed]
 
 
     def load_mods(self):
@@ -117,8 +118,8 @@ class ModManager():
                     mod_uuid = ModManifest.mod_uuid,
                     managed = True,
                     deployed = deployed,
-                    mod_dir = current_dir,
-                    deploy_dir = symlink_in_mhw,
+                    mod_path = current_dir,
+                    deploy_path = symlink_in_mhw,
                     files = files,
                     invalid_files = invalid_files,
                     manifest = manifest,
