@@ -3,6 +3,7 @@ from enum import Enum, StrEnum, auto
 import logging
 import os
 from pathlib import Path
+from pydantic.deprecated.tools import parse_obj_as
 from tomlkit import load
 from typing import Any, ClassVar
 import uuid
@@ -49,9 +50,6 @@ class ModManifest(BaseModel):
     custom_features: dict[str, bool] = Field(default_factory=dict)
     custom_states: dict[str, bool] = Field(default_factory=dict)
 
-class ManifestProblem:
-
-
 
 @dataclass
 class LoadedMod:
@@ -68,10 +66,10 @@ class LoadedMod:
     invalid_files: list[Path] | None  # List the names of invalid files in the mod directory.
     manifest: ModManifest | None  # The loaded mgr_manifest.toml file (if it exists).
     manifest_status: ManifestStatus
+    manifest_path: Path
 
     monster_id: int  # Identifies the target monster's primary species.
     variant_id: int  # Identifies the target monster's species variant.
-
 
 class ModManager():
     def __init__(self, mhw_dir: Path, mhw_mods_dir: Path, mgr_mods_dir: Path):
@@ -98,13 +96,12 @@ class ModManager():
         return [mod for mod in self._all_mods if mod.deployed]
 
     @property
-    def scan_mods_for_missing_manifests(self)
+    def missing_manifests(self):
         return [loaded_mod for loaded_mod in self._all_mods if loaded_mod.manifest_status == ManifestStatus.MISSING]
-    def initialize(self):
-        mods = self.load_mods()
 
-        missing_manifests = [loaded_mod for loaded_mod in mods if loaded_mod.manifest_status == ManifestStatus.MISSING]
-
+    @property
+    def corrupt_manifests(self):
+        return [loaded_mod for loaded_mod in self._all_mods if loaded_mod.manifest_status == ManifestStatus.CORRUPT]
 
 
     def load_mods(self):
@@ -145,8 +142,6 @@ class ModManager():
                 manifest = ModManifest(display_name=mod_name)
                 manifest_status = ManifestStatus.MISSING
 
-            
-
             mods.append(
                 LoadedMod(
                     name = mod_name,
@@ -159,6 +154,7 @@ class ModManager():
                     invalid_files = invalid_files,
                     manifest = manifest,
                     manifest_status = manifest_status,
+                    manifest_path = manifest_file,
                     monster_id = int(monster_id),
                     variant_id = int(variant_id),
                 )
@@ -218,12 +214,6 @@ class ModManager():
         logger.info("Config updated successfully. Changed fields: '%s'", list(update_data.keys()))
         return ConfigReport(status=ConfigStatus.VALID)
 
-    def _detec_manifest_problems(self, mods: list[LoadedMod]):
-        # Dev note: Might need to make this a detect method to return issues for user decisions, rather than silently patching.
-        for loaded_mod in mods:
-            if loaded_mod.manifest_status == ManifestStatus.VALID:
-                continue
-            elif loaded_mod.manifest_status == ManifestStatus.MISSING:
-                self._generate_default_manifest(loaded_mod.path)
-            elif loaded_
+    def _generate_default_manifest(self, manifest_file: Path):
+        pass
             
