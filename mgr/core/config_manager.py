@@ -83,7 +83,7 @@ class ConfigManager:
         except (PermissionError, MemoryError, OSError) as error:
             raise FatalConfigError(f"Failed to load config from '{self._config_file}' due to system error.") from error
         except (JSONDecodeError, ValidationError) as error:
-            raise CorruptConfigError(f"Config file at '{self._config_file}' is corrupt or has an invalid schema.") from error
+            raise CorruptConfigError(f"Config file at '{self._config_file}' is corrupt or has invalid structure.") from error
         
         config_report = self._validate_data(loaded_data)
         
@@ -198,7 +198,9 @@ class ConfigManager:
         except Exception:
             self._config_data = previous_data
             raise
-
+    
+    # Validate data explicitly instead of using pydantic field validators so that users can be given the option to
+    # fix them. Pydantic field validation would cause hard errors immediately after detection.
     def _validate_data(self, config_data: ConfigSchema) -> ConfigReport:
         """Validates config data and returns a list of problems if it finds any.
         

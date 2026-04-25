@@ -78,6 +78,12 @@ class MhwExeNotFoundError(ConfigValidationError):
 ##############
 class ModError(AppError):
     DEFAULT_MESSAGE: str = "A mod error has occurred."
+
+class ManifestError(ModError):
+    DEFAULT_MESSAGE: str = "A manifest error has occurred."
+
+class CorruptManifestError(ManifestError):
+    DEFAULT_MESSAGE: str = "A manifest error has occurred."
     
 
 
