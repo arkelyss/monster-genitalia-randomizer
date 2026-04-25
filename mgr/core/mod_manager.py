@@ -3,7 +3,6 @@ from enum import Enum, StrEnum, auto
 import logging
 import os
 from pathlib import Path
-from pydantic.deprecated.tools import parse_obj_as
 from tomlkit import load
 from typing import Any, ClassVar
 import uuid
@@ -174,46 +173,28 @@ class ModManager():
         except ValidationError:
             raise CorruptManifestError()
 
-    def _update_manifest_file(self, changes: ModManifest):
-        logger.debug("Attempting manifest update with changes: '%s'", changes.model_dump_json(indent=2, exclude_unset=True))
+    def _update_manifest_file(self, manifest_update: ModManifest, manifest_file: Path) -> ModManifest:
+        logger.debug("Attempting manifest update with changes: '%s'", manifest_update.model_dump_json(indent=2, exclude_unset=True))
+        loaded_manifest: ModManifest = self._load_manifest_file(manifest_file)
 
-        if changes == ModManifest():
+        if manifest_update == loaded_manifest:
             logger.debug("Manifest update skipped: No fields differ from current manifest.")
-            return
+            loaded_manifest
 
-        if not self._config_data:
-            raise MissingConfigDataError("update() was called before config was loaded.")
+        update_data = manifest_update.model_dump(exclude_unset=True)
 
-        # The following two lines are very important for data integrity. Without them, the config data would be
-        # overwritten with default values from inside our passed object whenever the update() method is called.
-
-        # 1. Extract Explicit Changes
-        # Use exclude_unset=True to extract only the fields that were explicitely changed.
-        update_data = changes.model_dump(exclude_unset=True)
-
-        # 2. Copy Model and Deep Copy
-        # Create a new instance of our current data instead of mutating the original. Update fields with update_data.
         # 'deep=True' ensures that any nested objects are also cloned. Otherwise, they would contain the same memory
         # addresses as their originals, meaning any changes to the copy would affect originals too.
-        candidate_config = self._config_data.model_copy(update=update_data, deep=True)
-        config_report = self._validate_data(candidate_config)
+        updated_manifest = loaded_manifest.model_copy(update=update_data, deep=True)
 
-        if config_report.status == ConfigStatus.INVALID:
-            message = "\n".join([f"- {problem.name}: {problem.reason}" for problem in config_report.problems])
-            logger.debug("Update rejected. Problems found: '%s'", message)
-            return config_report
-
-        previous_data = self._config_data
-        self._config_data = candidate_config
         try:
-            self._save()
-        except FatalConfigError as error:
-            self._config_data = previous_data
-            raise FatalConfigError("Update failed due to fatal config error.") from error
+            self._save_manifest(updated_manifest)
+        except Exception:
+            pass
             
-        logger.info("Config updated successfully. Changed fields: '%s'", list(update_data.keys()))
-        return ConfigReport(status=ConfigStatus.VALID)
+        logger.info("Manifest updated successfully. Changed fields: '%s'", list(update_data.keys()))
+        return updated_manifest
 
-    def _generate_default_manifest(self, manifest_file: Path):
+    def create_default_manifest(self, manifest_file: Path):
         pass
             
