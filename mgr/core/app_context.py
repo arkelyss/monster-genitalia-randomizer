@@ -23,4 +23,4 @@ class AppContext:
 
     @property
     def mods(self):
-        return self._mod_manager.all_mods
+        return self._mod_manager
