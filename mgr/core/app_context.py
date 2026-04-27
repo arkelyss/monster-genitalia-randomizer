@@ -9,7 +9,7 @@ AppContext instance before MainWindow is created.
  
 from mgr.core.config_manager import ConfigManager
 from mgr.core.config_schema import ConfigSchema
-from mgr.core.mod_manager import ModManager, ModOptions
+from mgr.core.mod_manager import ModManager
  
  
 class AppContext:
@@ -22,5 +22,5 @@ class AppContext:
         return self._config_manager.config
 
     @property
-    def mods(self) -> type[ModOptions]:
-        return self._mod_manager.mods
+    def mods(self):
+        return self._mod_manager.all_mods
