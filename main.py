@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication, QWizard
 from mgr.core.config_schema import ConfigSchema
 from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR, MHW_MODS_DIR_NAME
 from mgr.core.app_context import AppContext
-from mgr.core.exceptions import MissingConfigFileError
+from mgr.core.exceptions import CorruptConfigError, MissingConfigFileError
 from mgr.gui.main_window import MainWindow
 
 from mgr.core.config_manager import ConfigManager, ConfigReport, ConfigStatus, FieldStatus
@@ -138,6 +138,9 @@ def main() -> None:
         if config_report.status == ConfigStatus.INVALID:
             config_problem_resolver.resolve_problems(config_manager, config_report)
     except MissingConfigFileError:
+        config_manager.generate_default_config()
+    except CorruptConfigError as error:
+        config_manager.generate_default_config(backup_existing_config=True)
         config_manager.generate_default_config()
     
     mhw_dir = config_manager.config.mhw_dir

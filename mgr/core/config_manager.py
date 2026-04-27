@@ -10,6 +10,7 @@ from pathlib import Path
 import tempfile
 import json
 import shutil
+from textwrap import indent
 from pydantic import ValidationError
 from mgr.core.constants import MHW_DIR_NAME, MHW_EXE_NAME
 from mgr.core.exceptions import CorruptConfigError, FatalConfigError, MissingConfigDataError, MissingConfigFileError
@@ -77,6 +78,7 @@ class ConfigManager:
         try:
             with open(self._config_file, 'r') as config_file:
                 loaded_data = ConfigSchema.model_validate_json(config_file.read())
+                print(f"{loaded_data}")
                 self._config_data = loaded_data
         except FileNotFoundError as error:
             raise MissingConfigFileError(f"No config found at '{self._config_file}'.")
