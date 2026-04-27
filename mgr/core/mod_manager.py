@@ -3,11 +3,13 @@ from enum import Enum, StrEnum, auto
 import logging
 import os
 from pathlib import Path
+import tempfile
 from tomlkit import load
 from typing import Any, ClassVar
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+import tomlkit
 
 from mgr.core.constants import MANIFEST_FILE_NAME, MOD_DIR_TREE, SUPPORTED_FILE_TYPES
 from mgr.core.exceptions import CorruptManifestError
@@ -173,13 +175,10 @@ class ModManager():
         except ValidationError:
             raise CorruptManifestError()
 
+
     def _update_manifest_file(self, manifest_update: ModManifest, manifest_file: Path) -> ModManifest:
         logger.debug("Attempting manifest update with changes: '%s'", manifest_update.model_dump_json(indent=2, exclude_unset=True))
         loaded_manifest: ModManifest = self._load_manifest_file(manifest_file)
-
-        if manifest_update == loaded_manifest:
-            logger.debug("Manifest update skipped: No fields differ from current manifest.")
-            loaded_manifest
 
         update_data = manifest_update.model_dump(exclude_unset=True)
 
@@ -187,8 +186,12 @@ class ModManager():
         # addresses as their originals, meaning any changes to the copy would affect originals too.
         updated_manifest = loaded_manifest.model_copy(update=update_data, deep=True)
 
+        if updated_manifest == loaded_manifest:
+            logger.debug("Manifest update skipped: No fields differ from current manifest.")
+            return loaded_manifest
+
         try:
-            self._save_manifest(updated_manifest)
+            self._save_manifest(updated_manifest, manifest_file)
         except Exception:
             pass
             
@@ -196,5 +199,21 @@ class ModManager():
         return updated_manifest
 
     def create_default_manifest(self, manifest_file: Path):
-        pass
+        self._save_manifest(ModManifest(), manifest_file)
+
+    def _save_manifest(self, manifest: ModManifest, path: Path):
+        with tempfile.NamedTemporaryFile('w', dir=path.parent, delete=False, suffix='.temp', encoding='utf-8') as temp_file:
+            temp_manifest_file = Path(temp_file.name)
+            logger.debug("Writing temporary manifest file at '%s'.", temp_manifest_file)
+            tomlkit.dump(manifest.model_dump(), temp_file)  # pyright: ignore[reportUnknownMemberType]
+            
+            
+            # Flush and sync to avoid Windows problems due to the way it locks open files
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+
+            temp_manifest_file.replace(path)
+            logger.debug("Save complete. Temp file has replaced config at '%s'.")
+
+
             
