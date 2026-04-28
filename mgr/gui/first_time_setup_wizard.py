@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QCheckBox, QFileDialog, QHBoxLayout, QPushButton, 
 from PySide6.QtCore import Qt
 
 from mgr.core.config_schema import ConfigSchema
-from mgr.core.constants import MHW_EXE_NAME, MGR_MODS_DIR
+from mgr.core.constants import MHW_EXE_NAME, MGR_MODS_DIR, POSSIBLE_MHW_INSTALL_DIRS
 
 logger = logging.getLogger(__name__)
 print(f"Logger name: {logger.name}")
@@ -46,6 +46,9 @@ class MHWLocationPage(QWizardPage):
         self.setSubTitle("Please input the location of your MHW installation directory.")
 
         self.mhw_dir_input: QLineEdit = QLineEdit()
+        detected_mhw = [path for path in POSSIBLE_MHW_INSTALL_DIRS if path.exists()]
+        self.mhw_location_match: str = str(detected_mhw[0]) if detected_mhw else ""
+        self.mhw_dir_input.setPlaceholderText(self.mhw_location_match)
         self.browse_button: QPushButton = QPushButton("Browse")
 
         self.status_label: QLabel = QLabel()
@@ -56,7 +59,7 @@ class MHWLocationPage(QWizardPage):
         message_label = QLabel("MGR needs to know where your Monster Hunter World installation is located.")
         message_label.setWordWrap(True)
 
-        input_label = QLabel("Mods Location:")
+        input_label = QLabel("MHW Location:")
 
         input_layout = QHBoxLayout()
         input_layout.addWidget(input_label)
@@ -71,13 +74,14 @@ class MHWLocationPage(QWizardPage):
         layout.addLayout(input_layout)
         layout.addWidget(self.status_label)
 
-        self.browse_button.clicked.connect(self._get_directory)
+        self.browse_button.clicked.connect(self._get_mhw_directory)
         self.mhw_dir_input.textChanged.connect(self._validate_mhw_dir)
 
-    def _get_directory(self):
+    def _get_mhw_directory(self):
         path = QFileDialog.getExistingDirectory(
             self,
             "Select MHW Directory",
+            self.mhw_location_match,
             options = QFileDialog.Option.DontUseNativeDialog | QFileDialog.Option.ShowDirsOnly
         )
         if path:
@@ -247,7 +251,7 @@ class FirstTimeSetupWizard(QWizard):
 
             self._wizard_config_data = ConfigSchema(
                 mhw_dir = self.field("wizard_mhw_dir"),  # pyright: ignore[reportAny]
-                mods_dir = self.field("wizard_mods_dir") if custom_mods_dir_checkbox else MGR_MODS_DIR
+                mgr_mods_dir = self.field("wizard_mods_dir") if custom_mods_dir_checkbox else MGR_MODS_DIR
             )
             self.new_config_update.emit(self._wizard_config_data)
 

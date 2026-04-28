@@ -139,7 +139,7 @@ def main() -> None:
             config_problem_resolver.resolve_problems(config_manager, config_report)
     except MissingConfigFileError:
         config_manager.generate_default_config()
-    except CorruptConfigError as error:
+    except CorruptConfigError:
         config_manager.generate_default_config(backup_existing_config=True)
         config_manager.generate_default_config()
     
