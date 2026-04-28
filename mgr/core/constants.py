@@ -18,11 +18,12 @@ SUPPORTED_ARCHIVE_TYPES: list[str] = [".zip", ".7z"]
 SUPPORTED_FILE_TYPES: list[str] = [".mod3", ".mrl3", ".ctc", ".tex", ".toml"]
 
 POSSIBLE_MHW_INSTALL_DIRS: list[Path] = [
-    Path(SYSTEM_ROOT / "Program Files (x86)" / "Steam" / "steamapps" / "common" / "Monster Hunter World"),
-    Path(SYSTEM_ROOT / "SteamLibrary" / "steamapps" / "common" / "Monster Hunter World"),
-    Path(SYSTEM_ROOT / ".var" / "app" / "com.valvesoftware.Steam" / ".local" / "share" / "Steam" / "steamapps" / "common" / "Monster Hunter World"),
-    Path(SYSTEM_ROOT / ".local" / "share" / "Steam" / "steamapps" / "common" / "Monster Hunter World"),
-    Path(SYSTEM_ROOT / "snap" / "steam" / "common" / ".local" / "share" / "Steam" / "steamapps" / "common" /" Monster Hunter World")
+    SYSTEM_ROOT / "Program Files (x86)" / "Steam" / "steamapps" / "common" / "Monster Hunter World",
+    SYSTEM_ROOT / "SteamLibrary" / "steamapps" / "common" / "Monster Hunter World",
+    SYSTEM_ROOT / ".var" / "app" / "com.valvesoftware.Steam" / ".local" / "share" / "Steam" / "steamapps" / "common" / "Monster Hunter World",
+    SYSTEM_ROOT / "snap" / "steam" / "common" / ".local" / "share" / "Steam" / "steamapps" / "common" /"Monster Hunter World",
+    *Path(SYSTEM_ROOT / "home").glob("*/.local/share/Steam/steamapps/common/Monster Hunter World"),
+    *Path(SYSTEM_ROOT / "home").glob("*/.steam/steam/steamapps/common/Monster Hunter World"),
 ]
 
 
@@ -43,3 +44,5 @@ CONFIG_FILE = CONFIG_DIR / CONFIG_FILE_NAME
 # Matches the following pattern: em/em##/##/dirname/filename.suffix
 # Use '?P<>' so match.groupdict() can be used later for easy dictionary population of directory structures.
 MOD_DIR_TREE: re.Pattern[str] = re.compile(r"^em(\d+)[/\\](\d+)[/\\]([^/\\]+)$")
+
+
