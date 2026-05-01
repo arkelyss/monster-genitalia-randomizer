@@ -32,45 +32,45 @@ class FatalConfigError(ConfigError):
 class MissingConfigFileError(ConfigError):
     DEFAULT_MESSAGE: str = "Config file is missing."
 
-class InvalidPathError(ConfigError):
+class InvalidConfigPathError(ConfigError):
     DEFAULT_MESSAGE: str = "Config path is invalid."
 
-class MissingConfigDataError(ConfigError):
-    DEFAULT_MESSAGE: str = "Config not loaded."
+class ConfigNotInitializedError(ConfigError):
+    DEFAULT_MESSAGE: str = "Config not initialized."
 
+############################
+# Config Validation Errors #
+############################
 class ConfigValidationError(ConfigError):
     DEFAULT_MESSAGE: str = "Config validation failed."
 
-class ConfigExceptionGroup(ExceptionGroup):
-    pass
-
-class MissingRequiredValueError(ConfigValidationError):
-    DEFAULT_MESSAGE: str = "A required config field is missing a value."
-
-    def __init__(self, message: str, field: str):
-        self.field: str = field
-        super().__init__(message)
-
-class InvalidValuePathError(ConfigValidationError):
+class InvalidFieldPathError(ConfigValidationError):
     DEFAULT_MESSAGE: str = "A field's value is an invalid."
 
-    def __init__(self, message: str, field: str, path: Path):
-        self.field: str = field
+    def __init__(self, message: str | None = None, field: str | None = None, path: Path | None = None):
+        self.field: str | None = field
         super().__init__(message)
 
-class InvalidValueTypeError(ConfigValidationError):
-    DEFAULT_MESSAGE: str = "Value was of invalid type."
+class MissingRequiredFieldError(ConfigValidationError):
+    DEFAULT_MESSAGE: str = "A required config field is missing a value."
 
-    def __init__(self, message: str, field: str, path: Path):
-        self.field: str = field
+    def __init__(self, message: str | None = None, field: str | None = None):
+        self.field: str | None = field
         super().__init__(message)
 
+class MissingMhwDirPathError(MissingRequiredFieldError):
+    DEFAULT_MESSAGE: str = "A required config field is missing a value."
 
+    def __init__(self, message: str | None = None, field: str | None = None):
+        self.field: str | None = field
+        super().__init__(message)
 
-class InvalidMhwDirNameError(ConfigValidationError):
-    DEFAULT_MESSAGE: str = "MHW directory name is invalid."
-class MhwExeNotFoundError(ConfigValidationError):
-    DEFAULT_MESSAGE: str = "MHW exe is invalid or not found."
+class MissingMhwExeError(MissingRequiredFieldError):
+    DEFAULT_MESSAGE: str = "A required config field is missing a value."
+
+    def __init__(self, message: str | None = None, field: str | None = None):
+        self.field: str | None = field
+        super().__init__(message)
 
 
 ##############
@@ -83,7 +83,7 @@ class ManifestError(ModError):
     DEFAULT_MESSAGE: str = "A manifest error has occurred."
 
 class CorruptManifestError(ManifestError):
-    DEFAULT_MESSAGE: str = "A manifest error has occurred."
+    DEFAULT_MESSAGE: str = "Manifest file is corrupt."
     
 
 

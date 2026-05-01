@@ -1,18 +1,18 @@
 """Orchestrates the startup procedures and initialization before starting the GUI"""
 import argparse
+from collections import defaultdict
 from dataclasses import dataclass
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import sys
 import logging
 from PySide6.QtWidgets import QApplication, QWizard
-from mgr.core.config_schema import ConfigSchema
-from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR, MHW_MODS_DIR_NAME
+from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR, MHW_DIR_NAME, MHW_EXE_NAME, MHW_MODS_DIR_NAME
 from mgr.core.app_context import AppContext
 from mgr.core.exceptions import CorruptConfigError, MissingConfigFileError
 from mgr.gui.main_window import MainWindow
 
-from mgr.core.config_manager import ConfigManager, ConfigReport, ConfigStatus, FieldStatus
+from mgr.core.config_manager import AppConfig, AppConfigFields, ConfigManager, ConfigStatus, ConfigValidationReport, IssueCode
 from mgr.core.mod_manager import ModManager
 from mgr.gui.first_time_setup_wizard import FirstTimeSetupWizard
 from typing import Any, cast
@@ -33,71 +33,72 @@ logger.addHandler(console_handler)
 # This is primarily because of Signal emissions, such as with FirstTimeSetupWizard.
 # Without the ConfigManager instance, the emit callback function has no way of reliably retrieiving it.
 # An alternate solution would be passing the manager instance into the wizard, but that would obfuscate flow.
-class ConfigProblemResolver:
-    def __init__(self):
-        self._config_manager: ConfigManager
-        self._setup_wizard: FirstTimeSetupWizard = FirstTimeSetupWizard()
 
+class ConfigValidationResolver:
+    def __init__(self, config_report: ConfigValidationReport):
+        self._config_report: ConfigValidationReport = config_report
 
-    def resolve_problems(self, config_manager: ConfigManager, config_report: ConfigReport):
-        while config_report.status == ConfigStatus.INVALID:
-            logger.debug("Config problems detected.")
-            problems = config_report.problems
-            required_field_count = 0
-            missing_required_count = 0
+    def run(self) -> AppConfig:
+        logger.debug("Attempting to resolve config issues...")
+        popup_input = PopupInput()
 
-            for field_info in ConfigSchema.model_fields.values():
-                if isinstance(field_info.json_schema_extra, dict) and field_info.json_schema_extra.get("requires_value"):
-                    required_field_count += 1
-                    print(f"{required_field_count}")
-
-            for problem in problems:
-                if problem.status == FieldStatus.MISSING_REQUIRED_VALUE:
-                    missing_required_count += 1
-                    print(f"Problems: {missing_required_count}")
-
-            # Create a dictionary to temporarily hold updates so they can be bulk pushed later.
-            # This is done to ensure that exclude_unset=True in ConfigManager.update() can correctly identify which
-            # fields are newly set.
-            temp_config_data: dict[str, Any] = {}  # pyright: ignore[reportExplicitAny]
-
-            if missing_required_count == required_field_count:
-                logger.info("Running first time setup wizard.")
+        while not self._config_report.status == ConfigStatus.IS_VALID:
+            if self._config_report.status == ConfigStatus.IS_DEFAULT:
+                logger.info("Config is default. Running first time setup.")
                 setup_wizard = FirstTimeSetupWizard()
                 if setup_wizard.exec() == QWizard.DialogCode.Accepted:
-                    wizard_config_data: ConfigSchema = setup_wizard.wizard_config_data
-                    temp_config_data = wizard_config_data.model_dump()
+                    config_updates = setup_wizard.wizard_app_config.model_dump(exclude_unset=True)
+                    updated_config = self._config_report.config.model_copy(update=config_updates, deep=True)
+                    self._config_report = ConfigManager.validate(updated_config)
+                    continue
                 else:
                     sys.exit(logging.shutdown())
-            
-            else:
-                popup_input = PopupInput()
-                for field_problem in problems:
-                    if field_problem.status == FieldStatus.MISSING_REQUIRED_VALUE:
-                        result = popup_input.show_popup("Missing Required Value", f"{field_problem.reason}")
-                        if result:
-                            temp_config_data.setdefault(field_problem.name, result)
-                    elif field_problem.status == FieldStatus.INVALID_PATH:
-                        result = popup_input.show_popup("Invalid Path", f"{field_problem.reason}")
-                        if result:
-                            temp_config_data.setdefault(field_problem.name, result)
-                    elif field_problem.status == FieldStatus.INVALID_MHW_DIR_NAME:
-                        result = popup_input.show_popup("Invalid MHW Directory", f"{field_problem.reason}")
-                        if result:
-                            temp_config_data.setdefault(field_problem.name, result)
-                    elif field_problem.status == FieldStatus.MISSING_MHW_EXE:
-                        result = popup_input.show_popup("Missing MHW Exe", f"{field_problem.reason}")
-                        if result:
-                            temp_config_data.setdefault(field_problem.name, result)
-                
-            new_config_data = ConfigSchema(**temp_config_data)  # pyright: ignore[reportAny]
-            config_report = config_manager.update(new_config_data)
 
+            # Create a dictionary to temporarily hold updates so they can be bulk pushed later.
+            # This is done to ensure that pydantic's 'exclude_unset=True' in ConfigManager.update() can correctly identify which
+            # fields are newly set.
+            update_data: dict[str, Any] = defaultdict(Any)  # pyright: ignore[reportExplicitAny]
+
+
+            for field_issue in self._config_report.field_issues:
+                key = field_issue.key
+                value = field_issue.value
+                issue_codes = field_issue.codes
+
+                # Precise fixes for specific keys. 
+                match key:
+                    case AppConfigFields.MHW_DIR:
+                        if IssueCode.INVALID_MHW_DIR_NAME in issue_codes:
+                            user_input = popup_input.show_popup("Invalid MHW Directory", f"Expected directory name to be {MHW_DIR_NAME}, got {value} instead.")
+                            if user_input is not None:
+                                update_data[key] = user_input
+                        if IssueCode.MISSING_MHW_EXE in issue_codes:
+                            user_input = popup_input.show_popup(f"Invalid MHW Directory", f"Could not find {MHW_EXE_NAME} at {value}")
+                            if user_input is not None:
+                                update_data[key] = user_input
+                    case _:
+                        pass
+
+                # General fixes for when specific keys don't matter.
+                if IssueCode.MISSING_REQUIRED_VALUE in issue_codes:
+                    user_input = popup_input.show_popup("Missing Required Value", f"{key} value is {value}. Requires value to proceed.")
+                    if user_input is not None:
+                        update_data[key] = user_input
+                if IssueCode.PATH_IS_BROKEN in issue_codes:
+                    user_input = popup_input.show_popup("Broken Path", f"{key} path is broken.")
+                    if user_input is not None:
+                        update_data[key] = user_input
+
+
+            updated_config = self._config_report.config.model_copy(update=update_data, deep=True)
+            self._config_report = ConfigManager.validate(updated_config)
+            
+    
+        return self._config_report.config
 
 @dataclass
 class ArgTypes(argparse.Namespace):
     debug: bool
-
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -110,9 +111,9 @@ def _parse_args() -> argparse.Namespace:
     return args
 
 
-def create_dirs(data_dirs: list[Path]) -> None:
-    logger.debug("Creating user data directories: '%s'", f"{data_dirs}")
-    for path in data_dirs:
+def create_dirs(dir_paths: list[Path]) -> None:
+    logger.debug("Creating directories:\n%s", "\n".join(str(path) for path in dir_paths))
+    for path in dir_paths:
         path.mkdir(exist_ok=True, parents=True)
 
 
@@ -130,18 +131,17 @@ def main() -> None:
     logger.addHandler(rotating_file_handler)
 
     config_manager: ConfigManager = ConfigManager(CONFIG_FILE)
-    config_problem_resolver: ConfigProblemResolver = ConfigProblemResolver()
+    validation_report: ConfigValidationReport
     
     try:
-        config_report: ConfigReport = config_manager.load_config()
-
-        if config_report.status == ConfigStatus.INVALID:
-            config_problem_resolver.resolve_problems(config_manager, config_report)
+        validation_report = config_manager.load()
     except MissingConfigFileError:
-        config_manager.generate_default_config()
+        validation_report = config_manager.generate_default_config()
     except CorruptConfigError:
-        config_manager.generate_default_config(backup_existing_config=True)
-        config_manager.generate_default_config()
+        validation_report = config_manager.generate_default_config(backup_existing_config=True)
+
+    app_config = ConfigValidationResolver(validation_report).run()
+    config_manager.update(app_config)
     
     mhw_dir = config_manager.config.mhw_dir
     mgr_mods_dir = config_manager.config.mgr_mods_dir

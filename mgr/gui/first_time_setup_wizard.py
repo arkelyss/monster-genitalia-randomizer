@@ -5,7 +5,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QCheckBox, QFileDialog, QHBoxLayout, QPushButton, QSizePolicy, QWidget, QWizard, QWizardPage, QLabel, QLineEdit, QVBoxLayout
 from PySide6.QtCore import Qt
 
-from mgr.core.config_schema import ConfigSchema
+from mgr.core.config_manager import AppConfig
 from mgr.core.constants import MHW_EXE_NAME, MGR_MODS_DIR, POSSIBLE_MHW_INSTALL_DIRS
 
 logger = logging.getLogger(__name__)
@@ -222,14 +222,14 @@ class SummaryPage(QWizardPage):
         )
 
 class FirstTimeSetupWizard(QWizard):
-    new_config_update: Signal = Signal(ConfigSchema)
+    new_config_update: Signal = Signal(AppConfig)
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MGR Setup Wizard")
         self.setFixedSize(700, 500)
 
-        self._wizard_config_data: ConfigSchema = ConfigSchema()
+        self._wizard_app_config: AppConfig = AppConfig()
 
         self.addPage(WelcomePage())
         self.addPage(MHWLocationPage())
@@ -242,18 +242,18 @@ class FirstTimeSetupWizard(QWizard):
         self.finished.connect(self._on_finished)
 
     @property
-    def wizard_config_data(self):
-        return self._wizard_config_data
+    def wizard_app_config(self):
+        return self._wizard_app_config
 
     def _on_finished(self, result: QWizard.DialogCode) -> None:
         if result == QWizard.DialogCode.Accepted:
             custom_mods_dir_checkbox: bool = self.field("custom_mods_dir_checkbox")  # pyright: ignore[reportAny]
 
-            self._wizard_config_data = ConfigSchema(
+            self._wizard_app_config = AppConfig(
                 mhw_dir = self.field("wizard_mhw_dir"),  # pyright: ignore[reportAny]
                 mgr_mods_dir = self.field("wizard_mods_dir") if custom_mods_dir_checkbox else MGR_MODS_DIR
             )
-            self.new_config_update.emit(self._wizard_config_data)
+            self.new_config_update.emit(self._wizard_app_config)
 
     
 
