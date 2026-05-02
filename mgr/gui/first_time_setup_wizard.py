@@ -168,7 +168,8 @@ class ModsLocationPage(QWizardPage):
     def _get_directory(self):
         path = QFileDialog.getExistingDirectory(
             self,
-            "Select MHW Directory",
+            "Choose MGR Mods Directory",
+            dir = str(MGR_MODS_DIR),
             options = QFileDialog.Option.DontUseNativeDialog | QFileDialog.Option.ShowDirsOnly
         )
         if path:
