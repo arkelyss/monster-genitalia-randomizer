@@ -1,5 +1,4 @@
-from PySide6.QtCore import QObject
-from PySide6.QtWidgets import QApplication, QInputDialog, QMessageBox, QWidget
+from PySide6.QtWidgets import QInputDialog, QWidget
 
 class PopupInput(QInputDialog):
 
