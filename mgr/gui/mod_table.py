@@ -10,7 +10,7 @@ from pathlib import Path
 from mgr.core.constants import SUPPORTED_ARCHIVE_TYPES
 
 @final
-class ModDropZone(QTableWidget):
+class ModTable(QTableWidget):
     mod_already_added = Signal(list)
 
     def __init__(self, parent: QWidget | None):
@@ -20,8 +20,9 @@ class ModDropZone(QTableWidget):
         horizontal_header = self.horizontalHeader()
         vertical_header = self.verticalHeader()
 
-        self.setColumnCount(3)
-        self.setHorizontalHeaderLabels(["Mod", "Status", "Size"])
+        header_categories = ["Mod", "Target", "Status", "Size"]
+        self.setColumnCount(len(header_categories))
+        self.setHorizontalHeaderLabels(header_categories)
 
         if horizontal_header:
             horizontal_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -99,10 +100,10 @@ class ModDropZone(QTableWidget):
         mime = event.mimeData()
 
         if mime and mime.hasUrls():
-            dropped_mods = [Path(url.toLocalFile()) for url in mime.urls()]
+            dropped_archives = [Path(url.toLocalFile()) for url in mime.urls()]
             already_added: list[str] = []
 
-            for path in dropped_mods:
+            for path in dropped_archives:
                 mod_name = path.name       
 
                 if mod_name in [mod_path.name for mod_path in self.mod_queue]:

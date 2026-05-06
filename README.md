@@ -24,7 +24,7 @@ There are several ways to install MGR, but all of them lead to the same place: E
 1. Open a new CMD window.
 2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
 3. Run the following commands:
-    ```console
+    ```batch
     # Clone MGR
     git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
 
@@ -35,7 +35,7 @@ There are several ways to install MGR, but all of them lead to the same place: E
     git switch develop
     ```
 4. At this point you have two options. You can open File Explorer and run setup_venv.bat directly, then start_mgr.bat, or you can do it from the CMD.
-    ```console
+    ```batch
     # Run the setup script
     setup_venv.bat
 
@@ -48,22 +48,22 @@ There are several ways to install MGR, but all of them lead to the same place: E
 1. Open a new terminal.
 2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
 3. Run the following commands:
-    ```console
-        # Clone MGR
-        git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
+    ```bash
+    # Clone MGR
+    git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
 
-        # Open the directory
-        cd monster-genitalia-randomizer
+    # Open the directory
+    cd monster-genitalia-randomizer
 
-        # Switch to the 'develop' branch
-        git switch develop
+    # Switch to the 'develop' branch
+    git switch develop
 
-        # Make the scripts executable and run the setup
-        sudo chmod +x setup_venv.sh start_mgr.sh
-        ./setup_venv.sh
+    # Make the scripts executable and run the setup
+    sudo chmod +x setup_venv.sh start_mgr.sh
+    ./setup_venv.sh
 
-        # Start MGR
-        ./start_mgr.sh
+    # Start MGR
+    ./start_mgr.sh
     ```
 
 
