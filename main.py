@@ -162,41 +162,7 @@ def main() -> None:
     
     sys.exit(app.exec())
 
-# def run():
-#     app = QApplication(sys.argv)
-    
-#     window = QWidget()
-#     layout = QVBoxLayout(window)
-    
-#     line_edit = QLineEdit()
-
-#     table = QTableView()
-#     model = MyModel()
-#     sorting_proxy = QSortFilterProxyModel()
-#     sorting_proxy.setSourceModel(model)
-#     sorting_proxy.setFilterKeyColumn(0)
-#     sorting_proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-#     line_edit.textChanged.connect(lambda text: sorting_proxy.setFilterRegularExpression(f"^{re.escape(text)}"))
-#     table.setModel(sorting_proxy)
-#     table.setSortingEnabled(True)
-
-    
-    
-#     add_btn = QPushButton("Add Person")
-#     remove_btn = QPushButton("Remove Last")
-    
-#     add_btn.clicked.connect(lambda: model.add_person (["Dave", 38, "Develoeper"]))
-#     remove_btn.clicked.connect(model.remove_last)
-    
-#     layout.addWidget(line_edit)
-#     layout.addWidget(table)
-#     layout.addWidget(add_btn)
-#     layout.addWidget(remove_btn)
-    
-#     window.show()
-#     return app.exec()
-        
-if __name__ == "__main__":
+if __name__ == "__main__":#
     # run()
     main()
 

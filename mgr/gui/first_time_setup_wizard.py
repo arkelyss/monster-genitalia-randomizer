@@ -45,10 +45,11 @@ class MHWLocationPage(QWizardPage):
         self.setTitle("MHW Location")
         self.setSubTitle("Please input the location of your MHW installation directory.")
 
+        detected_mhw_dir = [path for path in POSSIBLE_MHW_INSTALL_DIRS if path.exists()]
+        self.mhw_location_match: str = str(detected_mhw_dir[0]) if detected_mhw_dir else ""
+
         self.mhw_dir_input: QLineEdit = QLineEdit()
-        detected_mhw = [path for path in POSSIBLE_MHW_INSTALL_DIRS if path.exists()]
-        self.mhw_location_match: str = str(detected_mhw[0]) if detected_mhw else ""
-        self.mhw_dir_input.setPlaceholderText(self.mhw_location_match)
+        self.mhw_dir_input.setText(self.mhw_location_match)
         self.browse_button: QPushButton = QPushButton("Browse")
 
         self.status_label: QLabel = QLabel()
@@ -76,6 +77,8 @@ class MHWLocationPage(QWizardPage):
 
         self.browse_button.clicked.connect(self._get_mhw_directory)
         self.mhw_dir_input.textChanged.connect(self._validate_mhw_dir)
+
+        self._validate_mhw_dir()
 
     def _get_mhw_directory(self):
         path = QFileDialog.getExistingDirectory(
