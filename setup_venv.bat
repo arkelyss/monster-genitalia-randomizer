@@ -143,6 +143,6 @@ goto :main
 
     echo.
     echo MGR Setup complete!
-    echo You may now start MGR by entering 'python -m main' into a terminal or by using the 'start_mgr.bat' file.
+    echo You may now start MGR by entering 'start_mgr.bat' into a terminal or by opening the 'start_mgr.bat' file in File Explorer.
 
     endlocal

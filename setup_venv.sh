@@ -133,7 +133,7 @@ main () {
     install_dependencies
 
     echo -e "\nMGR Setup complete!"
-    echo "You may now start MGR by entering 'python -m main.py' into a terminal or by using the 'start_mgr.bat' file."
+    echo "You may now start MGR by entering '/.start_mgr.sh' into a terminal."
 }
 
 main "$@"
