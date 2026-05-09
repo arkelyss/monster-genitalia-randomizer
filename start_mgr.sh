@@ -21,10 +21,10 @@ command_exists() {
 HAS_GIT=false
 HAS_GIT_REPO=false
 HAS_PYTHON=false
-PYTHON_OK=false
+PYTHON_OK=false         # version meets pyproject.toml requires-python
 HAS_UV=false
 HAS_VENV=false
-DEPS_SYNCED=false
+DEPS_SYNCED=false       # true if uv.lock is not newer than .venv
 JUST_PULLED=false
 
 # ============================================================================
@@ -39,7 +39,7 @@ check_git() {
     if [[ "$HAS_GIT" == true && -d ".git" ]]; then
         HAS_GIT_REPO=true
     elif [[ "$HAS_GIT" == true ]]; then
-        log_warn "No .git folder found. If you downloaded the ZIP, update checks are unavailable."
+        log_warn "No .git folder found. If you downloaded a ZIP, update checks are unavailable."
         log_warn "To get automatic updates, clone the repository instead."
     fi
 }
@@ -140,15 +140,8 @@ check_venv() {
 
 # ============================================================================
 check_deps_synced() {
-    # Consider deps out of sync if uv.lock is newer than the venv, or if no venv exists
     if [[ "$HAS_VENV" == false ]]; then
         DEPS_SYNCED=false
-        return
-    fi
-
-    if [[ -f "uv.lock" && "uv.lock" -nt "$VENV_DIR" ]]; then
-        DEPS_SYNCED=false
-        log_warn "uv.lock is newer than $VENV_DIR — dependencies may be out of sync."
     else
         DEPS_SYNCED=true
     fi
@@ -217,12 +210,12 @@ check_for_updates() {
 
 # ============================================================================
 do_update() {
-    # Check for dirty working tree before touching anything
+    # Discard any local changes so the pull always succeeds cleanly
     if ! git diff --quiet || ! git diff --cached --quiet; then
-        log_error "You have local changes that would be overwritten by the update."
-        log_error "Please back up or discard your changes and run setup again."
-        log_error "  To discard changes: git restore ."
-        return
+        log_warn "Local changes detected. Discarding them to apply the update..."
+        git reset --hard HEAD
+        git clean -fd
+        log_info "Local changes discarded."
     fi
 
     log_step "Pulling updates from $REMOTE/$BRANCH..."
@@ -264,7 +257,6 @@ do_update() {
 }
 
 # ============================================================================
-
 print_menu() {
     echo ""
     echo "What would you like to do?"
@@ -272,18 +264,12 @@ print_menu() {
 
     # Option 1 — Set up virtual environment
     if [[ "$HAS_VENV" == false ]]; then
-        echo "  1. Set up virtual environment <- do this now"
+        echo "  1. Set up virtual environment <- do this first"
     else
         echo "  1. Set up virtual environment"
     fi
 
-    # Option 2 — Sync dependencies
-    if [[ "$HAS_VENV" == true && "$DEPS_SYNCED" == false ]]; then
-        echo "  2. Sync dependencies <- do this now"
-    else
-        echo "  2. Sync dependencies"
-    fi
-
+    echo "  2. Check for updates"
     echo "  3. Start MGR"
     echo "  4. Exit"
     echo ""
@@ -331,30 +317,18 @@ do_setup_venv() {
             return
         fi
         HAS_VENV=true
-        DEPS_SYNCED=false
         log_info "$VENV_DIR successfully created."
-        log_info "Run 'Sync dependencies' to install packages."
+
+        # Automatically sync dependencies after venv creation
+        echo ""
+        log_step "Syncing dependencies..."
+        if ! uv sync; then
+            log_error "uv sync failed. Check the output above for details."
+            return
+        fi
+        DEPS_SYNCED=true
+        log_info "Dependencies synced successfully."
     fi
-}
-
-# ============================================================================
-do_sync_deps() {
-    echo ""
-    log_step "Syncing dependencies..."
-
-    if [[ "$HAS_UV" == false ]]; then
-        log_error "uv is not available. Cannot sync dependencies."
-        return
-    fi
-
-    if ! uv sync; then
-        log_error "uv sync failed. Check the output above for details."
-        return
-    fi
-
-    DEPS_SYNCED=true
-    HAS_VENV=true
-    log_info "Dependencies synced successfully."
 }
 
 # ============================================================================
@@ -390,7 +364,7 @@ run_menu() {
         echo ""
         case "$choice" in
             1) do_setup_venv ;;
-            2) do_sync_deps ;;
+            2) check_for_updates ;;
             3)
                 if [[ "$HAS_VENV" == false || "$PYTHON_OK" == false ]]; then
                     log_warn "MGR cannot start. See menu for details."
@@ -399,7 +373,7 @@ run_menu() {
                 fi
                 ;;
             4)
-                log_info "Finished."
+                log_info "Goodbye!"
                 exit 0
                 ;;
             *)

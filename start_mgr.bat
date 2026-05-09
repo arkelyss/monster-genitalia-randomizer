@@ -9,6 +9,8 @@ set REMOTE=origin
 set BRANCH=develop
 
 :: ============================================================================
+:: State flags
+:: ============================================================================
 set HAS_GIT=false
 set HAS_GIT_REPO=false
 set HAS_PYTHON=false
@@ -37,6 +39,8 @@ goto :main
     echo [STEP] %~1
     exit /b 0
 
+:: ============================================================================
+:: PHASE 1 - ENVIRONMENT CHECK
 :: ============================================================================
 :check_git
     where git >nul 2>&1
@@ -159,26 +163,10 @@ goto :main
     )
     exit /b 0
 
-:: ============================================================================
+::  ============================================================================
 :check_deps_synced
     if "!HAS_VENV!"=="false" (
         set DEPS_SYNCED=false
-        exit /b 0
-    )
-
-    if not exist "uv.lock" (
-        set DEPS_SYNCED=true
-        exit /b 0
-    )
-
-    :: Compare timestamps: is uv.lock newer than .venv?
-    for /f "tokens=*" %%r in ('powershell -command "(Get-Item 'uv.lock').LastWriteTime -gt (Get-Item '%VENV_DIR%').LastWriteTime"') do (
-        set LOCK_NEWER=%%r
-    )
-
-    if /i "!LOCK_NEWER!"=="True" (
-        set DEPS_SYNCED=false
-        call :log_warn "uv.lock is newer than %VENV_DIR% -- dependencies may be out of sync."
     ) else (
         set DEPS_SYNCED=true
     )
@@ -201,6 +189,8 @@ goto :main
     call :check_deps_synced
     exit /b 0
 
+:: ============================================================================
+:: PHASE 2 - UPDATE CHECK
 :: ============================================================================
 :check_for_updates
     if "!HAS_GIT!"=="false" exit /b 0
@@ -250,22 +240,24 @@ goto :main
 
 :: ============================================================================
 :do_update
-    :: Check for dirty working tree before touching anything
+    :: Discard any local changes so the pull always succeeds cleanly
     git diff --quiet >nul 2>&1
     if errorlevel 1 (
-        call :log_error "You have local changes that would be overwritten by the update."
-        call :log_error "Please back up or discard your changes and run setup again."
-        call :log_error "  To discard changes: git restore ."
-        exit /b 0
+        call :log_warn "Local changes detected. Discarding them to apply the update..."
+        git reset --hard HEAD
+        git clean -fd
+        call :log_info "Local changes discarded."
+        goto :do_pull
     )
     git diff --cached --quiet >nul 2>&1
     if errorlevel 1 (
-        call :log_error "You have staged changes that would be overwritten by the update."
-        call :log_error "Please back up or discard your changes and run setup again."
-        call :log_error "  To discard changes: git restore --staged ."
-        exit /b 0
+        call :log_warn "Local changes detected. Discarding them to apply the update..."
+        git reset --hard HEAD
+        git clean -fd
+        call :log_info "Local changes discarded."
     )
 
+    :do_pull
     call :log_step "Pulling updates from %REMOTE%/%BRANCH%..."
     git pull %REMOTE% %BRANCH%
     if errorlevel 1 (
@@ -306,6 +298,8 @@ goto :main
     exit /b 0
 
 :: ============================================================================
+:: PHASE 3 - MAIN MENU
+:: ============================================================================
 :print_menu
     echo.
     echo What would you like to do?
@@ -317,12 +311,7 @@ goto :main
         echo   1. Set up virtual environment
     )
 
-    if "!HAS_VENV!"=="true" if "!DEPS_SYNCED!"=="false" (
-        echo   2. Sync dependencies ^<- do this first
-    ) else (
-        echo   2. Sync dependencies
-    )
-
+    echo   2. Check for updates
     echo   3. Start MGR
     echo   4. Exit
     echo.
@@ -368,31 +357,18 @@ goto :main
             exit /b 0
         )
         set HAS_VENV=true
-        set DEPS_SYNCED=false
         call :log_info "%VENV_DIR% successfully created."
-        call :log_info "Run 'Sync dependencies' to install packages."
+
+        echo.
+        call :log_step "Syncing dependencies..."
+        uv sync
+        if errorlevel 1 (
+            call :log_error "uv sync failed. Check the output above for details."
+            exit /b 0
+        )
+        set DEPS_SYNCED=true
+        call :log_info "Dependencies synced successfully."
     )
-    exit /b 0
-
-:: ============================================================================
-:do_sync_deps
-    echo.
-    call :log_step "Syncing dependencies..."
-
-    if "!HAS_UV!"=="false" (
-        call :log_error "uv is not available. Cannot sync dependencies."
-        exit /b 0
-    )
-
-    uv sync
-    if errorlevel 1 (
-        call :log_error "uv sync failed. Check the output above for details."
-        exit /b 0
-    )
-
-    set DEPS_SYNCED=true
-    set HAS_VENV=true
-    call :log_info "Dependencies synced successfully."
     exit /b 0
 
 :: ============================================================================
@@ -431,7 +407,7 @@ goto :main
         goto :run_menu
     )
     if "!MENU_CHOICE!"=="2" (
-        call :do_sync_deps
+        call :check_for_updates
         goto :run_menu
     )
     if "!MENU_CHOICE!"=="3" (
