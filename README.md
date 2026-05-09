@@ -1,4 +1,4 @@
-# Monster Genitalia Randomizer (Reborn)
+# Monster Genitalia Randomizer (Alpha Phase)
 
 This project is currently in early alpha. Designs, features, and functionality may break or change at any time. If you would like to help shape its development, you can participate in the following ways:
 
@@ -9,7 +9,7 @@ This project is currently in early alpha. Designs, features, and functionality m
 - Donations of any amount so that I can stay caffeinated.
 
 
-# What is it?
+# Introduction
 Monster Genitalia Randomizer is the official successor to an old cli app created for Monster Hunter World, published directly to NexusMods (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, the original app was a randomizer for Monster Hunter World genitalia mods. It provided features like randomized mod deployment, synchronized results via seed sharing, and the ability to customize preferences with keyword filters.
 
 The original app was limited in scope, buggy, and not user-friendly.  This project aims to provide more features and quality of life additions, such as:
@@ -23,6 +23,22 @@ The original app was limited in scope, buggy, and not user-friendly.  This proje
 - Lightweight symlink deployment system
 
 
+# Alpha Testing Guidance
+As an alpha tester, you will be exploring uncharted territory. Some days the everything might run perfectly, and other times nothing will function at all. You may encounter features and designs you love, only to have them snatched away during a future update.
+
+Don't let this scare you; use it to your advantage! Instead of trying to make things work, see if you can find ways to break them. If you discover something you love and it gets removed, start a discussion to bring it back. Alpha testing is for thinking outside the box; we can get more organized when Beta rolls around.
+
+**When in doubt, follow these suggestions:**
+1. Update frequently. Changes are constantly happening, so check back daily!
+2. Try to break things instead of trying to make them work.
+3. Look beyond bugs and code, sometimes it's about what you want.
+4. Use GitHub to make your voice heard:
+    - Report bugs here: https://github.com/arkelyss/monster-genitalia-randomizer/issues
+    - Discuss here: https://github.com/arkelyss/monster-genitalia-randomizer/discussions
+    - Submit your own code here: https://github.com/arkelyss/monster-genitalia-randomizer/pulls
+    - Contact the dev here: arkelysstm@gmail.com
+
+
 # Requirements
 
 - Linux/Windows OS
@@ -31,54 +47,50 @@ The original app was limited in scope, buggy, and not user-friendly.  This proje
 
 
 # Installation
-There are several ways to install MGR, but all of them have similar final steps: Eventually, you will need to run the 'setup_venv.bat' (or setup_venv.sh for Linux). This script only needs to be run once after downloading MGR, or once after updating to a new version. Afterwards, you can just use 'start_mgr.bat' (or start_mgr.sh on Linux) to open the program.
+There are several ways to install MGR (I highly recommend using CMD or a terminal), but all of them have similar final steps: You will run 'start_mgr.bat' (or start_mgr.sh for Linux). This will show you a menu where you can check for updates, set up the required environment, and run MGR. 
 
 
 ## Windows CMD
 1. Open Command Prompt as Administrator.
-2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
+2. Change the directory to wherever you want the project installed: 'cd <directory-path>'.
 3. Run the following commands:
     ```console
     # Clone MGR
-    git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
+    git clone -b develop https://github.com/arkelyss/monster_genitalia_randomizer.git
 
-    # Open the directory
+    # Enter the project directory
     cd monster-genitalia-randomizer
-
-    # Switch to the 'develop' branch
-    git switch develop
     ```
-4. At this point you have two options. You can open File Explorer and run setup_venv.bat directly, then start_mgr.bat, or you can do it from the CMD.
+4. Open File Explorer and run 'start_mgr.bat' directly, or do it from the Command Prompt:
     ```console
-    # Run the setup script
-    setup_venv.bat
-
     # Start MGR
     start_mgr.bat
     ```
+5. The script will run and check for updates (say yes to any updates). Afterwards, you will see a menu.
+6. Select `1. Set up virtual environment`.
+7. Select `3. Start MGR` to start the program.
 
 
 ## Linux Terminal
 1. Open a new terminal.
-2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
+2. Change the directory to wherever you want the project installed: 'cd <directory-path>'.
 3. Run the following commands:
     ```console
     # Clone MGR
-    git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
+    git clone -b develop https://github.com/arkelyss/monster_genitalia_randomizer.git
 
-    # Open the directory
+    # Enter the directory
     cd monster-genitalia-randomizer
 
-    # Switch to the 'develop' branch
-    git switch develop
+    # Make the scripts executable
+    sudo chmod +x *
 
-    # Make the scripts executable and run the setup
-    sudo chmod +x setup_venv.sh start_mgr.sh
-    ./setup_venv.sh
-
-    # Start MGR
+    # Run MGR
     ./start_mgr.sh
     ```
+4. The script will run and check for updates (say yes to any updates). Afterwards, you will see a menu.
+5. Select `1. Set up virtual environment`.
+6. Select `3. Start MGR` to start the program.
 
 
 ## ZIP File
@@ -87,5 +99,19 @@ There are several ways to install MGR, but all of them have similar final steps:
 3. Select 'Download ZIP' from the dropdown.
 4. Unpack the ZIP file anywhere.
 5. Navigate into the 'monster-genitalia-randomizer' directory.
-6. Run setup_venv (.bat on Windows, .sh on Linux).
-7. Run start_mgr (.bat on Windows, .sh on Linux).
+6. Run the 'start_mgr.bat' (start_mgr.sh on Linux) file.
+7. A menu will appear in your CMD/Terminal.
+6. Select `1. Set up virtual environment`.
+7. Select `3. Start MGR` to start the program.
+
+# Updating
+How you update is dependant on how you installed MGR. This is why using CMD/Terminal for your initial installation is recommended; it's easier in the long run.
+
+## CMD/Terminal
+1. Run the `start_mgr` script.
+2. It will check for updates. When prompted, input 'y' to accept and download.
+3. Alternatively, select `2. Check for updates` from the script menu, then use 'y' to accept and download.
+
+## ZIP
+1. Delete your old *monster-genitalia-randomizer* directory (don't worry, your configurations and settings are safe).
+2. Follow the original installation instructions for ZIP Files (see the Installation chapter above).
