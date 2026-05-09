@@ -9,37 +9,37 @@ This project is currently in early alpha. Designs, features, and functionality m
 - Donations of any amount so that I can stay caffeinated.
 
 
-# Requirements
+# Installation
+
+### Requirements
 
 - Linux/Windows OS
 - Python 3.14 (https://www.python.org/downloads/)
 - Git (https://git-scm.com/)
-
-
-# Installation
 Note: You will only need to run setup_venv file once each time you download a new version of MGR. After that, whenever you want to start MGR, just use the 'start_mgr' file.
 
-## Windows CMD
-1. Open a new CMD window.
-2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
-3. Clone the project: `git clone https://github.com/arkelyss/monster-genitalia-randomizer.git`
-4. CD into the directory: `cd monster-genitalia-randomizer`
-5. Switch to the 'develop' branch: `git switch develop`
-6. At this point you have two options:
-    - Open File Explorer and navigate to the `monster-genitalia-randomizer` directory. Run 'setup_venv.bat'.
-    - Or run it from the CMD: `setup_venv.bat`.
-7. Start MGR from the 'start_mgr.bat' file.
 
-
-## Linux Terminal
+##### Linux Terminal
 1. Open a new terminal.
-2. Change the directory (using 'cd <directory-path>') to wherever you want the project installed.
-3. Clone the project: `git clone https://github.com/arkelyss/monster-genitalia-randomizer.git`
-4. CD into the project directory: `cd monster-genitalia-randomizer`
-5. Switch to the 'develop' branch: `git switch develop`
-6. Make scripts executable: `sudo chmod +x setup_venv.sh start_mgr.sh`
-7. Execute setup_venv.sh: `./setup_venv.sh`
-8. Start MGR: `./start_mgr.sh`
+2. Change the directory (using 'cd <directory-path>') to wherever you want the MGR installed.
+3. Run the following commands:
+    ```console
+    # Clone MGR
+    git clone https://github.com/arkelyss/monster-genitalia-randomizer.git
+
+    # Open the directory
+    cd monster-genitalia-randomizer
+
+    # Switch to the 'develop' branch
+    git switch develop
+
+    # Make the scripts executable and run the setup
+    sudo chmod +x setup_venv.sh start_mgr.sh
+    ./setup_venv.sh
+
+    # Start MGR
+    ./start_mgr.sh
+    ```
 
 
 ## ZIP File
