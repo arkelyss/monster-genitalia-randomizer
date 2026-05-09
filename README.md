@@ -10,16 +10,16 @@ This project is currently in early alpha. Designs, features, and functionality m
 
 
 # What is it?
-Monster Genitalia Randomizer is the successor of MGR Cli (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, MGR Cli was just a light mod manager for Monster Hunter World genitalia mods, providing features like randomizated mod deployment, seed sharing, and the ability to filter for different monster sexes.
+Monster Genitalia Randomizer is the successor of MGR Cli (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, MGR Cli was just a light mod manager for Monster Hunter World genitalia mods, providing features like randomized mod deployment, seed sharing, and the ability to filter for different monster sexes pre-randomization.
 
-While the original cli version was limited and unwieldy, its this successor aims to provide more features and quality of life additions. These include (but aren't limited to):
+While the original cli version was limited and unwieldy, this successor aims to provide more features and quality of life additions. These include (but aren't limited to):
 
-- An easily-navigatable GUI
+- Simple GUI
 - Automatic mod installation via drag-and-drop
-- Timer-based randomized (no two hunts are predictable)
+- Timer-based randomized while client is running
 - Shared coop settings for total synchronization
-- Community participation via mod identification
-- Expanded filters for in-depth customization
+- Community participation and collaboration
+- Expanded filters for in-depth, customized randomization
 - Lightweight symlink deployment
 
 
