@@ -99,7 +99,7 @@ setup_venv () {
         done
     fi
 
-    if [[ perform_setup == true ]]; then
+    if [[ $perform_setup == true ]]; then
         uv venv $VENV_DIR
         if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
             log_info "$VENV_DIR successfully created."
