@@ -291,7 +291,7 @@ class SettingsPage(QWidget):
     def _build_body(self):
         body = QWidget()
         # body.setStyleSheet("background-color: red;")
-        body_layout = QHBoxLayout(body)
+        _ = QHBoxLayout(body)
         return body
 
     def _build_footer(self) -> QWidget:
