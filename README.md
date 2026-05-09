@@ -1,26 +1,26 @@
-# Monster Genitalia Randomizer
+# Monster Genitalia Randomizer (Reborn)
 
-This project is currently in early alpha. Designs, features, and functionality may break or change at any time. If you would like to help shape this project's development, you can participate in the following ways:
+This project is currently in early alpha. Designs, features, and functionality may break or change at any time. If you would like to help shape its development, you can participate in the following ways:
 
 - Alpha testing by cloning the 'develop' branch and using the program.
-- Reporting bugs and submitting PRs.
+- Reporting bugs or submitting PRs.
 - Requesting features, offering suggestions, and sharing feedback.
 - Creating UI assets such as icons, art, and screenshots.
 - Donations of any amount so that I can stay caffeinated.
 
 
 # What is it?
-Monster Genitalia Randomizer is the successor of MGR Cli (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, MGR Cli was just a light mod manager for Monster Hunter World genitalia mods, providing features like randomized mod deployment, seed sharing, and the ability to filter for different monster sexes pre-randomization.
+Monster Genitalia Randomizer is the official successor to an old cli app created for Monster Hunter World, published directly to NexusMods (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, the original app was a randomizer for Monster Hunter World genitalia mods. It provided features like randomized mod deployment, synchronized results via seed sharing, and the ability to customize preferences with keyword filters.
 
-While the original cli version was limited and unwieldy, this successor aims to provide more features and quality of life additions. These include (but aren't limited to):
+The original app was limited in scope, buggy, and not user-friendly.  This project aims to provide more features and quality of life additions, such as:
 
-- Simple GUI
-- Automatic mod installation via drag-and-drop
+- A simple GUI
+- Automatic mod installation (drag and drop supported)
 - Timer-based randomized while client is running
 - Shared coop settings for total synchronization
 - Community participation and collaboration
-- Expanded filters for in-depth, customized randomization
-- Lightweight symlink deployment
+- Expanded filters for in-depth customization
+- Lightweight symlink deployment system
 
 
 # Requirements
@@ -31,7 +31,7 @@ While the original cli version was limited and unwieldy, this successor aims to 
 
 
 # Installation
-There are several ways to install MGR, but all of them lead to the same place: Eventually, you will need to run 'setup_venv.bat' (or setup_venv.sh for Linux). This script only needs to be run once after downloading MGR, or once after updating to a new version. Afterwards, you can just use 'start_mgr.bat' (or start_mgr.sh on Linux) to open the program.
+There are several ways to install MGR, but all of them have similar final steps: Eventually, you will need to run the 'setup_venv.bat' (or setup_venv.sh for Linux). This script only needs to be run once after downloading MGR, or once after updating to a new version. Afterwards, you can just use 'start_mgr.bat' (or start_mgr.sh on Linux) to open the program.
 
 
 ## Windows CMD
