@@ -4,20 +4,24 @@
         {
             "label": "Run main.py",
             "type": "shell",
-            "command": "${workspaceFolder}/.venv/bin/python -m main",
-            "options": {
-                "cwd": "${workspaceFolder}"
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows": {
+                "command": "${workspaceFolder}/.venv/Scripts/python.exe"
             },
+            "args": [
+                "-m",
+                "main"
+            ],
             "group": {
-            "kind": "build",
-            "isDefault": true
-        },
-    "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "focus": true,
-        "echo": true
-      }
-    }
-  ]
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true,
+                "echo": true
+            }
+        }
+    ]
 }

@@ -136,11 +136,12 @@ class MainWindow(QMainWindow):
     def _build_body(self) -> QWidget:
         body = QWidget()
         body_layout = QVBoxLayout(body)
-
+        body_layout.setContentsMargins(0, 0, 0, 0)
+        body_layout.setSpacing(0)
         body_layout.addWidget(self.stack)
 
         self.stack.addWidget(HomePage())
-        self.stack.addWidget(ModsLibraryPage())
+        self.stack.addWidget(ModLibraryPage())
         self.stack.addWidget(SettingsPage())
         self.stack.addWidget(CreditsPage())
 
@@ -162,16 +163,16 @@ class HomePage(QWidget):
         self._build_ui()
 
     def _build_ui(self):
-        mod_page_layout = QVBoxLayout(self)
+        home_layout = QVBoxLayout(self)
 
-        mod_page_layout.addWidget(self._build_header())
-        mod_page_layout.addWidget(self._build_body())
-        mod_page_layout.addStretch(1)
-        mod_page_layout.addWidget(self._build_footer())
+        home_layout.addWidget(self._build_header())
+        home_layout.addWidget(self._build_body())
+        home_layout.addStretch(1)
+        home_layout.addWidget(self._build_footer())
 
     def _build_header(self) -> QWidget:
         header = QWidget(self)
-        header.setFixedHeight(100)
+        header.setFixedHeight(120)
         # header.setStyleSheet("background-color: gray;")
         _ = QHBoxLayout(header)
         return header
@@ -183,12 +184,11 @@ class HomePage(QWidget):
 
         greeting_text = QLabel(
             "Hello!\n\n"+
-            f"You've landed on build {APP_VERSION} of MGR. We are currently in the very early stages of alpha development, so expect everything"+
+            f"You've landed on build {APP_VERSION} of MGR. We are currently in the very early stages of alpha development, so expect everything "+
             "to break (features, functionality, design, updates etc).\n\n"+
-            "If you're here to participate in testing or contribute to the project, then welcome aboard! I'll take all the help I can get. "+
-            "For a full list of ways you can help, check out the README.md in the links below.\n\n"+
+            "If you're here to participate in testing or contribute to the project, then welcome aboard! For a full list of ways you can help, check out the README.md in the links below.\n\n"+
             "Good luck, and happy hunting!\n\n"+
-            "   - Arkelyss\n\n"
+            "       - Arkelyss\n\n"
         )
         greeting_text.setWordWrap(True)
         greeting_text.setFont(QFont("Georgia", 12))
@@ -212,17 +212,17 @@ class HomePage(QWidget):
         return footer
 
 
-class ModsLibraryPage(QWidget):
+class ModLibraryPage(QWidget):
     def __init__(self):
         super().__init__()
         self._build_ui()
 
     def _build_ui(self):
-        mod_page_layout = QVBoxLayout(self)
+        mod_library_layout = QVBoxLayout(self)
 
-        mod_page_layout.addWidget(self._build_header())
-        mod_page_layout.addWidget(self._build_body())
-        mod_page_layout.addWidget(self._build_footer())
+        mod_library_layout.addWidget(self._build_header())
+        mod_library_layout.addWidget(self._build_body())
+        mod_library_layout.addWidget(self._build_footer())
 
     def _build_header(self) -> QWidget:
         header = QWidget(self)
@@ -274,20 +274,78 @@ class SettingsPage(QWidget):
 
     def _build_ui(self):
         settings_layout = QVBoxLayout(self)
+        settings_layout.setContentsMargins(0, 0, 0, 0)
+        settings_layout.setSpacing(0)
+
         settings_layout.addWidget(self._build_header())
+        settings_layout.addWidget(self._build_body())
         settings_layout.addWidget(self._build_footer())
 
     def _build_header(self) -> QWidget:
-        header = QWidget()
+        header = QWidget(self)
+        header.setFixedHeight(100)
+        # header.setStyleSheet("background-color: gray;")
         _ = QHBoxLayout(header)
         return header
 
+    def _build_body(self):
+        body = QWidget()
+        # body.setStyleSheet("background-color: red;")
+        body_layout = QHBoxLayout(body)
+        return body
+
     def _build_footer(self) -> QWidget:
         footer = QWidget()
-        _ = QHBoxLayout(footer)
+        # footer.setStyleSheet("background-color: gray;")
+        footer_layout = QVBoxLayout(footer)
+        footer_layout.setContentsMargins(0,0,0,0)
+
+        cat_label = QLabel()
+        # cat_label.setStyleSheet("background-color: gray;")
+        cat_pixmap = QPixmap(PALICO_PNG).scaled(250, 250)
+        cat_label.setPixmap(cat_pixmap)
+
+        footer_layout.addWidget(cat_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
         return footer
 
 class CreditsPage(QWidget):
     def __init__(self):
         super().__init__()
-        # self._build_ui()
+        self._build_ui()
+
+    def _build_ui(self):
+        credits_layout = QVBoxLayout(self)
+
+        credits_layout.addWidget(self._build_header())
+        credits_layout.addWidget(self._build_body())
+        credits_layout.addStretch(1)
+        credits_layout.addWidget(self._build_footer())
+
+    def _build_header(self) -> QWidget:
+        header = QWidget(self)
+        header.setFixedHeight(130)
+        # header.setStyleSheet("background-color: gray;")
+        _ = QHBoxLayout(header)
+        return header
+
+    def _build_body(self):
+        body = QWidget()
+        # body.setStyleSheet("background-color: gray;")
+        body.setFixedHeight(300)
+        body_layout = QHBoxLayout(body)
+        body.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
+
+        info_text = QLabel("Contributers to the project will be credited here. Good luck, hunter!")
+        info_text.setWordWrap(True)
+        info_text.setFont(QFont("Georgia", 12))
+        info_text.setStyleSheet("color: #BFBFBF;")
+        info_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        body_layout.addWidget(info_text, alignment=Qt.AlignmentFlag.AlignTop)
+
+        return body
+
+    def _build_footer(self) -> QWidget:
+        footer = QWidget()
+        _ = QHBoxLayout(footer)
+        return footer
