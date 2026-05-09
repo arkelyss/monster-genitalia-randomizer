@@ -4,9 +4,23 @@ from platformdirs import user_data_dir
 from pathlib import Path
 import re
 
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("monster-genitalia-randomizer")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
+# App information
+APP_VERSION: str = __version__
 
 # The current drive's root. On Linux this is /, and on Windows it's almost always C:\
 SYSTEM_ROOT: Path = Path(Path.cwd().anchor)
+PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
+MGR_ROOT: Path = Path(__file__).parent.parent
+ASSETS_DIR: Path = MGR_ROOT / "assets"
+FONTS_DIR: Path = ASSETS_DIR / "fonts"
+IMAGES_DIR: Path = ASSETS_DIR / "images"
 
 
 # Useful MHW information such as directories, filenames, supported file types, and potential installation locations.
@@ -44,5 +58,9 @@ CONFIG_FILE = CONFIG_DIR / CONFIG_FILE_NAME
 # Matches the following pattern: em/em##/##/dirname/filename.suffix
 # Use '?P<>' so match.groupdict() can be used later for easy dictionary population of directory structures.
 MOD_DIR_TREE: re.Pattern[str] = re.compile(r"^em(\d+)[/\\](\d+)[/\\]([^/\\]+)$")
+
+# Assets
+FONT_FIRLEST_REGULAR: Path = FONTS_DIR / "Firlest-Regular.otf"
+PALICO_PNG: Path = IMAGES_DIR / "cat.png"
 
 
