@@ -47,12 +47,11 @@ Don't let this scare you; use it to your advantage! Instead of trying to make th
 
 
 # Installation
-There are several ways to install MGR (I highly recommend using CMD or a terminal), but all of them have similar final steps: You will run 'start_mgr.bat' (or start_mgr.sh for Linux). This will show you a menu where you can check for updates, set up the required environment, and run MGR. 
-
+There are two ways to install MGR: CMD/Terminal or the ZIP File. I highly recommend using CMD/Terminal, you will have a much easier time later.
 
 ## Windows CMD
 1. Open Command Prompt as Administrator.
-2. Change the directory to wherever you want the project installed: 'cd <directory-path>'.
+2. Change the directory to wherever you want MGR installed: 'cd <directory-path>'.
 3. Run the following commands:
     ```console
     # Clone MGR
@@ -66,7 +65,7 @@ There are several ways to install MGR (I highly recommend using CMD or a termina
     # Start MGR
     start_mgr.bat
     ```
-5. The script will run and check for updates (say yes to any updates). Afterwards, you will see a menu.
+5. The script will run and check for updates (say yes to any updates). Afterwards, a menu will appear.
 6. Select `1. Set up virtual environment`.
 7. Select `3. Start MGR` to start the program.
 
@@ -82,36 +81,37 @@ There are several ways to install MGR (I highly recommend using CMD or a termina
     # Enter the directory
     cd monster-genitalia-randomizer
 
-    # Make the scripts executable
+    # Make all scripts executable
     sudo chmod +x *
 
     # Run MGR
     ./start_mgr.sh
     ```
-4. The script will run and check for updates (say yes to any updates). Afterwards, you will see a menu.
+4. The script will run and check for updates (say yes to any updates). Afterwards, a menu will appear.
 5. Select `1. Set up virtual environment`.
 6. Select `3. Start MGR` to start the program.
 
 
 ## ZIP File
-1. Navigate to MGR's main GitHub page and change the branch from 'main' to 'develop' (or use this link to get there: https://github.com/arkelyss/monster-genitalia-randomizer/tree/develop).
-2. Look for the green '<> Code' button and click it.
-3. Select 'Download ZIP' from the dropdown.
+1. Navigate to MGR's GitHub page and change the branch from `main` to `develop` (or use this link: https://github.com/arkelyss/monster-genitalia-randomizer/tree/develop).
+2. Look for the green **<> Code** button and click it.
+3. Select *Download ZIP* from the dropdown.
 4. Unpack the ZIP file anywhere.
-5. Navigate into the 'monster-genitalia-randomizer' directory.
-6. Run the 'start_mgr.bat' (start_mgr.sh on Linux) file.
-7. A menu will appear in your CMD/Terminal.
+5. Navigate into the *monster-genitalia-randomizer* directory.
+6. Run *start_mgr.bat* (*start_mgr.sh* on Linux).
+7. A menu will appear in your CMD/Terminal window.
 6. Select `1. Set up virtual environment`.
 7. Select `3. Start MGR` to start the program.
 
+
 # Updating
-How you update is dependant on how you installed MGR. This is why using CMD/Terminal for your initial installation is recommended; it's easier in the long run.
+The way you will update MGR changes depending on how you installed it. CMD/Terminal users will have a much easier time keeping their installation updated.
 
 ## CMD/Terminal
 1. Run the `start_mgr` script.
 2. It will check for updates. When prompted, input 'y' to accept and download.
 3. Alternatively, select `2. Check for updates` from the script menu, then use 'y' to accept and download.
 
-## ZIP
+## ZIP File
 1. Delete your old *monster-genitalia-randomizer* directory (don't worry, your configurations and settings are safe).
 2. Follow the original installation instructions for ZIP Files (see the Installation chapter above).
