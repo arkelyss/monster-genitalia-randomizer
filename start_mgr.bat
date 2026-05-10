@@ -421,7 +421,7 @@ goto :main
         goto :run_menu
     )
     if "!MENU_CHOICE!"=="4" (
-        call :log_info "Finished."
+        call :log_info "Finished!"
         exit /b 0
     )
 

@@ -373,7 +373,7 @@ run_menu() {
                 fi
                 ;;
             4)
-                log_info "Goodbye!"
+                log_info "Finished!"
                 exit 0
                 ;;
             *)

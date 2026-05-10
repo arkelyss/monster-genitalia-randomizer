@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monster-genitalia-randomizer"
-version = "1.0.0-alpha.3"
+version = "1.0.0a3"
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.0.0",
