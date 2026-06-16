@@ -3,5 +3,7 @@
     "venv": ".venv",
     "pythonVersion": "3.13",
     "extraPaths": [".."],
-    "reportUnusedCallResult": "none"
+    "reportUnusedCallResult": "none",
+    "reportAny": "none",
+    "reportExplicitAny": "warning",
 }

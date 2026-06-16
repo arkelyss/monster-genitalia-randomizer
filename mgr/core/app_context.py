@@ -7,19 +7,24 @@ All startup work is performed by StartupRunner, which populates an
 AppContext instance before MainWindow is created.
 """
  
-from mgr.core.config_manager import AppConfig, ConfigManager
-from mgr.core.mod_manager import ModManager
+from pydantic import BaseModel
+
+from mgr.configs.models.app_config import AppConfig
+from mgr.configs.models.nexus_index import NexusIndex
+from mgr.configs.services.config_service import ConfigService
+from mgr.mods.mod_service import ModService
  
  
 class AppContext:
-    def __init__(self, config_manager: ConfigManager, mod_manager: ModManager) -> None:
-        self._config_manager: ConfigManager = config_manager
-        self._mod_manager: ModManager = mod_manager
- 
-    @property
-    def config(self) -> AppConfig:
-        return self._config_manager.config
+    def __init__(self, app_config_service: ConfigService[AppConfig], nexus_index_service: ConfigService[NexusIndex], mod_service: ModService) -> None:
+        self._app_config_service: ConfigService[AppConfig] = app_config_service
+        self._nexus_index_service: ConfigService[NexusIndex] = nexus_index_service
+        self._mod_service: ModService = mod_service
 
     @property
-    def mods(self):
-        return self._mod_manager
+    def app_config(self) -> BaseModel:
+        return self._app_config_service.read
+
+    @property
+    def mod_service(self):
+        return self._mod_service

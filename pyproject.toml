@@ -11,7 +11,9 @@ dependencies = [
     "PySide6",
     "platformdirs",
     "py7zr",
-    "tomlkit"
+    "tomlkit",
+    "rarfile",
+    "pydantic-settings"
 ]
 
 [tool.hatch.build.targets.wheel]

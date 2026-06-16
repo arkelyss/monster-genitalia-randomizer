@@ -3,6 +3,9 @@
 
 from pathlib import Path
 
+from py7zr.exceptions import ArchiveError
+from pydantic_core import ErrorDetails
+
 
 class AppError(Exception):
     DEFAULT_MESSAGE: str = "An unexpected error has occurred."
@@ -16,6 +19,8 @@ class AppError(Exception):
 class IncompleteSetupError(AppError):
     DEFAULT_MESSAGE: str = "First time setup has not been performed."
 
+class FatalIOError(AppError):
+    DEFAULT_MESSAGE: str = "Something went wrong while trying to perform an I/O operation."
 
 #################
 # Config Errors #
@@ -72,6 +77,10 @@ class MissingMhwExeError(MissingRequiredFieldError):
         self.field: str | None = field
         super().__init__(message)
 
+class UnresolvableConfigError(RuntimeError):
+    def __init__(self, errors: list[ErrorDetails]) -> None:
+        super().__init__(f'Could not resolve all field errors: {errors}')
+
 
 ##############
 # Mod Errors #
@@ -79,7 +88,20 @@ class MissingMhwExeError(MissingRequiredFieldError):
 class ModError(AppError):
     DEFAULT_MESSAGE: str = "A mod error has occurred."
 
-class ManifestError(ModError):
+class ArchiveInstallerError(AppError):
+    DEFAULT_MESSAGE: str = "An archive installer error has occurred."
+
+class UnsupportedArchiveType(ModError):
+    DEFAULT_MESSAGE: str = "Archive type not supported."
+
+class InvalidItemStructure(ArchiveError):
+    DEFAULT_MESSAGE: str = "Archive item contains invalid structure."
+
+
+###################
+# Manifest Errors #
+###################
+class ManifestError(AppError):
     DEFAULT_MESSAGE: str = "A manifest error has occurred."
 
 class CorruptManifestError(ManifestError):

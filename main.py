@@ -1,165 +1,79 @@
 """Orchestrates the startup procedures and initialization before starting the GUI"""
-import argparse
-from collections import defaultdict
-from dataclasses import dataclass
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import sys
 import logging
-from PySide6.QtWidgets import QApplication, QWizard
-from mgr.core.constants import CONFIG_DIR, CONFIG_FILE, LOG_DIR, LOG_FILE, MGR_MODS_DIR, MHW_DIR_NAME, MHW_EXE_NAME, MHW_MODS_DIR_NAME
+from PySide6.QtWidgets import QApplication, QDialog
+from pydantic import BaseModel, ValidationError
+from mgr.configs.models.app_config import AppConfig
+from mgr.configs.models.nexus_index import NexusIndex
+from mgr.configs.repositories.json_file_repository import JsonFileRepository
+from mgr.configs.services.config_service import ConfigService
 from mgr.core.app_context import AppContext
-from mgr.core.exceptions import CorruptConfigError, MissingConfigFileError
+from mgr.core.constants import APP_CONFIG_FILE, APP_NEXUS_INDEX_FILE, LOCAL_APP_CONFIG_FILE, LOCAL_LOG_DIR, LOCAL_LOG_FILE, LOCAL_NEXUS_INDEX_FILE
 from mgr.gui.main_window import MainWindow
 
-from mgr.core.config_manager import AppConfig, AppConfigFields, ConfigManager, ConfigStatus, ConfigValidationReport, IssueCode
-from mgr.core.mod_manager import ModManager
-from mgr.gui.first_time_setup_wizard import FirstTimeSetupWizard
-from typing import Any, cast
-
-from mgr.gui.notifications.popup_message import PopupInput
+from mgr.gui.themes import LIGHT_THEME, apply_theme
+from mgr.mods.mod_service import ModService
+from mgr.mods.registry import ModRegistry
+from resolve_config import ValidatedInputDialog
 
 logger = logging.getLogger("mgr")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(formatter)
+def initialize_logging(debug: bool, log_dir: Path) -> None:
+    logger.setLevel(logging.DEBUG if debug else logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-logger.addHandler(console_handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG if debug else logging.INFO)
+    console_handler.setFormatter(formatter)
 
-# We need ComfigProblemResolver so we can hold a ConfigManager instance.
-# This is primarily because of Signal emissions, such as with FirstTimeSetupWizard.
-# Without the ConfigManager instance, the emit callback function has no way of reliably retrieiving it.
-# An alternate solution would be passing the manager instance into the wizard, but that would obfuscate flow.
+    logger.addHandler(console_handler)
 
-class ConfigValidationResolver:
-    def __init__(self, config_report: ConfigValidationReport):
-        self._config_report: ConfigValidationReport = config_report
+    log_dir.mkdir(parents = True, exist_ok = True)
 
-    def run(self) -> AppConfig:
-        logger.debug("Attempting to resolve config issues...")
-        popup_input = PopupInput()
-
-        while not self._config_report.status == ConfigStatus.IS_VALID:
-            if self._config_report.status == ConfigStatus.IS_DEFAULT:
-                logger.info("Config is default. Running first time setup.")
-                setup_wizard = FirstTimeSetupWizard()
-                if setup_wizard.exec() == QWizard.DialogCode.Accepted:
-                    config_updates = setup_wizard.wizard_app_config.model_dump(exclude_unset=True)
-                    updated_config = self._config_report.config.model_copy(update=config_updates, deep=True)
-                    self._config_report = ConfigManager.validate(updated_config)
-                    continue
-                else:
-                    sys.exit(logging.shutdown())
-
-            # Create a dictionary to temporarily hold updates so they can be bulk pushed later.
-            # This is done to ensure that pydantic's 'exclude_unset=True' in ConfigManager.update() can correctly identify which
-            # fields are newly set.
-            update_data: dict[str, Any] = defaultdict(Any)  # pyright: ignore[reportExplicitAny]
-
-
-            for field_issue in self._config_report.field_issues:
-                key = field_issue.key
-                value = field_issue.value
-                issue_codes = field_issue.codes
-
-                # Precise fixes for specific keys. 
-                match key:
-                    case AppConfigFields.MHW_DIR:
-                        if IssueCode.INVALID_MHW_DIR_NAME in issue_codes:
-                            user_input = popup_input.show_popup("Invalid MHW Directory", f"Expected directory name to be {MHW_DIR_NAME}, got {value} instead.")
-                            if user_input is not None:
-                                update_data[key] = user_input
-                        if IssueCode.MISSING_MHW_EXE in issue_codes:
-                            user_input = popup_input.show_popup(f"Invalid MHW Directory", f"Could not find {MHW_EXE_NAME} at {value}")
-                            if user_input is not None:
-                                update_data[key] = user_input
-                    case _:
-                        pass
-
-                # General fixes for when specific keys don't matter.
-                if IssueCode.MISSING_REQUIRED_VALUE in issue_codes:
-                    user_input = popup_input.show_popup("Missing Required Value", f"{key} value is {value}. Requires value to proceed.")
-                    if user_input is not None:
-                        update_data[key] = user_input
-                if IssueCode.PATH_IS_BROKEN in issue_codes:
-                    user_input = popup_input.show_popup("Broken Path", f"{key} path is broken.")
-                    if user_input is not None:
-                        update_data[key] = user_input
-
-
-            updated_config = self._config_report.config.model_copy(update=update_data, deep=True)
-            self._config_report = ConfigManager.validate(updated_config)
-            
-    
-        return self._config_report.config
-
-@dataclass
-class ArgTypes(argparse.Namespace):
-    debug: bool
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--debug",
-        type = bool,
-        help = "output debug logger messages"
-    )
-    args = parser.parse_args()
-    return args
-
-
-def create_dirs(dir_paths: list[Path]) -> None:
-    logger.debug("Creating directories:\n%s", "\n".join(str(path) for path in dir_paths))
-    for path in dir_paths:
-        path.mkdir(exist_ok=True, parents=True)
-
-
-def main() -> None:
-    app = QApplication(sys.argv)
-    app.aboutToQuit.connect(logging.shutdown)
-
-    _ = cast(ArgTypes, _parse_args())  # Might use later for passing cli args to startup
-    
-    create_dirs([LOG_DIR, MGR_MODS_DIR, CONFIG_DIR])
-
-    rotating_file_handler = RotatingFileHandler(LOG_FILE, maxBytes=5242880, backupCount=3)
+    rotating_file_handler = RotatingFileHandler(LOCAL_LOG_FILE, maxBytes=5242880, backupCount=3)
     rotating_file_handler.setLevel(logging.WARNING)
     rotating_file_handler.setFormatter(formatter)
     logger.addHandler(rotating_file_handler)
 
-    config_manager: ConfigManager = ConfigManager(CONFIG_FILE)
-    validation_report: ConfigValidationReport
-    
-    try:
-        validation_report = config_manager.load()
-    except MissingConfigFileError:
-        validation_report = config_manager.generate_default_config()
-    except CorruptConfigError:
-        validation_report = config_manager.generate_default_config(backup_existing_config=True)
+def service_resolver(service: ConfigService[BaseModel]):
+    while True:
+        try:
+            service.try_validate()
+            break
+        except ValidationError as err:
+            dialog = ValidatedInputDialog(service, err)
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                logger.error("Resolver canceled; exiting.")
+                sys.exit(1)
+            service.update(dialog.patch)
 
-    app_config = ConfigValidationResolver(validation_report).run()
-    config_manager.update(app_config)
-    
-    mhw_dir = config_manager.config.mhw_dir
-    mgr_mods_dir = config_manager.config.mgr_mods_dir
-    
-    if not mhw_dir:
-        raise RuntimeError("Monster Hunter World paths were not resolved before ModManager initialization.")
-    if not mgr_mods_dir:
-        raise RuntimeError("MGR mod path was not resolved before ModManager initialization.")
+def main():
+    initialize_logging(debug = True, log_dir = LOCAL_LOG_DIR)
 
-    mhw_mods_dir = mhw_dir / MHW_MODS_DIR_NAME
-    create_dirs([mhw_mods_dir])
+    app = QApplication(sys.argv)
+    app.aboutToQuit.connect(logging.shutdown)
+    apply_theme(app, LIGHT_THEME)
 
-    mod_manager = ModManager(mhw_dir, mhw_mods_dir, mgr_mods_dir)
-    app_context = AppContext(config_manager, mod_manager)
- 
+    app_config_service = ConfigService(AppConfig, JsonFileRepository(APP_CONFIG_FILE), JsonFileRepository(LOCAL_APP_CONFIG_FILE))
+    nexus_config_service = ConfigService(NexusIndex, JsonFileRepository(APP_NEXUS_INDEX_FILE), JsonFileRepository(LOCAL_NEXUS_INDEX_FILE))
+    app_config_service.load()
+    nexus_config_service.load()
+
+    service_resolver(app_config_service)
+    service_resolver(nexus_config_service)
+
+
+    mod_registry = ModRegistry()
+    mod_service = ModService(mod_registry, app_config_service, nexus_config_service)
+    mod_service.load()
+
+    app_context = AppContext(app_config_service, nexus_config_service, mod_service)
+
     window = MainWindow(app_context)
     window.show()
-    
+
     sys.exit(app.exec())
 
 if __name__ == "__main__":#
