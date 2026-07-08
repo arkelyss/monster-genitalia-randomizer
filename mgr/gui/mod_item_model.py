@@ -57,7 +57,7 @@ class ModItemModel(QAbstractItemModel):
     def __init__(self, app_context: AppContext):
         super().__init__()
         self._app_context: AppContext = app_context
-        self._mods: ModService = self._app_context.mod_service
+        self._mods: ModService = self._app_context.mods
         self._groups: list[TreeNode] = []
         self._checked: set[LoadedMod] = set()
         self._rebuild()
@@ -222,7 +222,7 @@ class ModItemModel(QAbstractItemModel):
             case ColumnLabels.MOD:
                 return group.name
             case ColumnLabels.CREATOR:
-                creators = {mod.creator for mod in group.mods}
+                creators = {mod.nexus_metadata.creator for mod in group.mods}
                 return next(iter(creators)) if len(creators) == 1 else "Multiple"
             case ColumnLabels.IDS:
                 return f"{len(group.mods)} variants"
@@ -235,9 +235,9 @@ class ModItemModel(QAbstractItemModel):
             case ColumnLabels.MOD:
                 return mod.name
             case ColumnLabels.CREATOR:
-                return mod.creator
+                return mod.nexus_metadata.creator
             case ColumnLabels.IDS:
-                return f"{mod.combined_ids}"
+                return f"{mod.monster_id}/{mod.variant_id}"
             case ColumnLabels.SIZE:
                 return mod.size
 
@@ -245,15 +245,18 @@ class ModItemModel(QAbstractItemModel):
         """A child row identifies its mod by the combined ids."""
         match column:
             case ColumnLabels.MOD:
-                return f"{mod.combined_ids}"
+                return f"{mod.monster_id}/{mod.variant_id}"
             case ColumnLabels.CREATOR:
-                return mod.creator
+                return mod.nexus_metadata.creator
             case ColumnLabels.IDS:
-                return f"{mod.combined_ids}"
+                return f"{mod.monster_id}/{mod.variant_id}"
             case ColumnLabels.SIZE:
                 return mod.size
-
-    def _on_mods_changed(self):
+    
+    def refresh(self):
         self.beginResetModel()
         self._rebuild()
         self.endResetModel()
+
+    def _on_mods_changed(self):
+        self.refresh()

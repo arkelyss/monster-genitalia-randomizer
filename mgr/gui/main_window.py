@@ -4,24 +4,26 @@ from PySide6.QtCore import QAbstractItemModel
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QPushButton, QStackedWidget, QStatusBar, QToolBar, QWidget, QMainWindow
 
+from app_setup import AppSetup
 from mgr.core.app_context import AppContext
 from mgr.core.constants import APP_VERSION
 from mgr.gui.mod_item_model import ModItemModel
 from mgr.gui.mod_tree_view import ModTreeView
 
 class MainWindow(QMainWindow):
-    def __init__(self, app_context: AppContext):
+    def __init__(self, app_setup: AppSetup):
         super().__init__()
         # App Context
-        self._app_context: AppContext = app_context
+        self._setup: AppSetup = app_setup
+        self._app_context: AppContext = self._setup.run()
 
         # Window configuration
         self.setWindowTitle(f"Monster Genitalia Randomizer v{APP_VERSION}")
         self.resize(1300,800)
 
-        # Widget creation
-        self._mod_table_model: QAbstractItemModel = ModItemModel(self._app_context)
-        self._mod_table_view: ModTreeView = ModTreeView(self._mod_table_model)
+        # Main mod viewing area
+        self._mod_item_model: QAbstractItemModel = ModItemModel(self._app_context)
+        self._mod_tree_view: ModTreeView = ModTreeView(self._mod_item_model)
         self.stack: QStackedWidget = QStackedWidget()
 
         # Attribute variables assigned later
@@ -32,6 +34,7 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._build_ui()
         self._connect_signals()
+        self._mod_item_model.refresh()
 
     def _build_ui(self) -> None:
         self.setMenuBar(self._build_menubar())
@@ -74,7 +77,7 @@ class MainWindow(QMainWindow):
         body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(0)
         # self.stack.addWidget(self._build_blank_widget())
-        self.stack.addWidget(self._mod_table_view)
+        self.stack.addWidget(self._mod_tree_view)
         body_layout.addWidget(self.stack)
 
         return body
@@ -98,11 +101,12 @@ class MainWindow(QMainWindow):
         return footer
 
     def _connect_signals(self):
-        self._mod_table_view.mod_archives_dropped.connect(self._on_archives_dropped)
+        self._mod_tree_view.mod_archives_dropped.connect(self._on_archives_dropped)
         self._uninstall_action.triggered.connect(self._on_uninstall_triggered)
 
     def _on_archives_dropped(self, archive_list: list[Path]):
-        self._app_context.mod_service.install_mods(archive_list)
+        self._app_context.mods.install_mods(archive_list)
     
     def _on_uninstall_triggered(self):
-        pass        
+        pass
+                    

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monster-genitalia-randomizer"
-version = "1.0.0a4"
+version = "1.0.0a5"
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.0.0",
@@ -13,7 +13,8 @@ dependencies = [
     "py7zr",
     "tomlkit",
     "rarfile",
-    "pydantic-settings"
+    "loguru",
+    "omegaconf"
 ]
 
 [tool.hatch.build.targets.wheel]

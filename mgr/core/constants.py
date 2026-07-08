@@ -38,7 +38,7 @@ POSSIBLE_MHW_EXE_LOCATIONS: list[Path] = [
 # MGR base files
 APP_CONFIG_DIR = Path('mgr') / 'configs'
 APP_CONFIG_FILE = APP_CONFIG_DIR / 'app_config.json'
-APP_NEXUS_INDEX_FILE = APP_CONFIG_DIR / 'nexus_index.json'
+APP_NEXUS_ARCHIVE_FILE = APP_CONFIG_DIR / 'nexus_archive.json'
 
 # User data directories and files.
 LOCAL_ENVIRONMENT_DIR = Path(user_data_dir("Monster Genitalia Randomizer"))
@@ -53,5 +53,6 @@ LOCAL_LOG_FILE = LOCAL_LOG_DIR / "app_log.log"
 # Assets
 FONT_FIRLEST_REGULAR: Path = APP_FONTS_DIR / "Firlest-Regular.otf"
 PALICO_PNG: Path = APP_IMAGES_DIR / "cat.png"
+CHECKMARK_PNG: Path = APP_IMAGES_DIR / 'checkmark.png'
 
 

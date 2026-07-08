@@ -12,7 +12,7 @@ from mgr.core.exceptions import InvalidItemStructure
 
 from pathlib import Path
 
-from mgr.core.re_patterns import MOD_PATH_CORE_PATTERN, ModPathCoreKeys
+from mgr.core.re_patterns import RELATIVE_MOD_PATH_PATTERN, RelativeModPathKeys
 from mgr.mods.models.enums import SupportedArchiveTypes
 
 logger = logging.getLogger(__name__)
@@ -125,7 +125,7 @@ class ArchiveExtractor(QObject):
     def _extract_zip(self, archive_file: Path, output_dir: Path, extraction_tracker: ExtractionTracker):
         with zipfile.ZipFile(archive_file, 'r') as archive_ref:
             archive_items = archive_ref.namelist()
-            modfile_targets = [item for item in archive_items if MOD_PATH_CORE_PATTERN.search(str(Path(item).parent))]
+            modfile_targets = [item for item in archive_items if RELATIVE_MOD_PATH_PATTERN.search(str(Path(item).parent))]
             extraction_tracker.current_archive_targets = modfile_targets
 
             for index, target in enumerate(modfile_targets):
@@ -145,7 +145,7 @@ class ArchiveExtractor(QObject):
         with py7zr.SevenZipFile(archive_file, mode='r') as archive_ref:
             mod_name = archive_file.stem
             archive_items = archive_ref.namelist()
-            modfile_targets = [item for item in archive_items if MOD_PATH_CORE_PATTERN.search(str(Path(item).parent))]
+            modfile_targets = [item for item in archive_items if RELATIVE_MOD_PATH_PATTERN.search(str(Path(item).parent))]
             extraction_tracker.current_archive_targets = modfile_targets
 
             factory = InMemoryFactory(adjust_path_fn=partial(self._adjust_modfile_path_for_mgr, new_parent_dir_name = mod_name), limit=sys.maxsize)
@@ -168,7 +168,7 @@ class ArchiveExtractor(QObject):
             archive_items: list[str] = archive_ref.namelist()
             modfile_targets: list[str] = [
                 item for item in archive_items
-                if MOD_PATH_CORE_PATTERN.search(str(Path(item).parent))
+                if RELATIVE_MOD_PATH_PATTERN.search(str(Path(item).parent))
                 and not archive_ref.getinfo(item).is_dir()  # pyright: ignore[reportUnknownMemberType]
             ]
             extraction_tracker.current_archive_targets = modfile_targets
@@ -210,13 +210,13 @@ class ArchiveExtractor(QObject):
         Constructs a new path for the mod, making it more identifiable to MGR by changing the
         modfiles' parent directory name to mirror the original mod archive name.
         """
-        pattern_match = MOD_PATH_CORE_PATTERN.search(str(Path(modfile_path).parent))
+        pattern_match = RELATIVE_MOD_PATH_PATTERN.search(str(Path(modfile_path).parent))
         if not pattern_match:
             raise InvalidItemStructure(f"Extracting to memory failed; invalid pattern match: {modfile_path}")
         match_groupdict = pattern_match.groupdict()
         new_path = (
-            Path(match_groupdict[ModPathCoreKeys.EM_MONSTER_ID]) /
-            match_groupdict[ModPathCoreKeys.VARIANT_ID] /
+            Path(match_groupdict[RelativeModPathKeys.MONSTER_ID_WITH_EM]) /
+            match_groupdict[RelativeModPathKeys.VARIANT_ID] /
             new_parent_dir_name / Path(modfile_path).name
         )
         return str(new_path)

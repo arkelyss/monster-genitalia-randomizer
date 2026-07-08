@@ -8,6 +8,7 @@ from PySide6.QtCore import QAbstractItemModel, QPoint, Qt, Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QMouseEvent
 from PySide6.QtWidgets import QAbstractItemView, QHeaderView, QMenu, QTreeView, QWidget
 
+from mgr.core.constants import CHECKMARK_PNG
 from mgr.mods.models.enums import SupportedArchiveTypes
 
 # Columns at this index or below are shown by default; anything higher starts hidden.
@@ -51,6 +52,22 @@ class ModTreeView(QTreeView):
         self.setRootIsDecorated(True)  # Show expand arrows for shared-name groups
         self.setUniformRowHeights(True)
         self.setContentsMargins(0, 0, 0, 0)
+
+        # Place a border around the checkboxes and use a checkmark image when checked
+        self.setStyleSheet(f"""
+            QTreeView::indicator {{
+                width: 14px;
+                height: 14px;
+                border: 2px solid #555555; /* Your custom border color/thickness */
+                border-radius: 3px;        /* Optional: rounded corners */
+                background-color: #ffffff;
+            }}
+
+            QTreeView::indicator:checked {{
+                image: url({CHECKMARK_PNG});
+                padding: 2px;
+            }}
+        """)
 
     def _configure_header(self):
         header = self.header()

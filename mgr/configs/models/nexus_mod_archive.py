@@ -8,9 +8,9 @@ class TimestampInfo(BaseModel):
 
 class IdInfo(BaseModel):
     creator: str = 'Unknown'
-    timestamps: dict[str, TimestampInfo]
+    timestamps: dict[int, TimestampInfo]
 
-class NexusIndex(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(title = "Nexus Config")
+class NexusModArchive(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(title = "Nexus Mods")
 
-    nexus_ids: dict[str, IdInfo]
+    nexus_ids: dict[int, IdInfo]

@@ -1,0 +1,20 @@
+{
+    "title": "Nexus Archive",
+    "nexus_ids": {
+        "0000": {
+            "creator": "Creator Name",
+            "timestamps": {
+                "0000000000": {
+                    "features": {
+                        "feature_example": true,
+                        "another_feature_example": false
+                    },
+                    "states": {
+                        "state_example": true,
+                        "another_state_example": false
+                    }
+                }
+            }
+        }
+    }
+}
