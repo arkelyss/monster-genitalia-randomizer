@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from PySide6.QtCore import QAbstractItemModel
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QPushButton, QStackedWidget, QStatusBar, QToolBar, QWidget, QMainWindow
 
@@ -22,7 +21,7 @@ class MainWindow(QMainWindow):
         self.resize(1300,800)
 
         # Main mod viewing area
-        self._mod_item_model: QAbstractItemModel = ModItemModel(self._app_context)
+        self._mod_item_model: ModItemModel = ModItemModel(self._app_context)
         self._mod_tree_view: ModTreeView = ModTreeView(self._mod_item_model)
         self.stack: QStackedWidget = QStackedWidget()
 
@@ -49,18 +48,18 @@ class MainWindow(QMainWindow):
 
         return status_bar
 
+    def _create_actions(self) -> None:
+        self._install_action = QAction('Install Mod(s)', self)
+        self._uninstall_action = QAction('Uninstall Mod(s)', self)
+        self._install_action.setToolTip("Install mod archives")
+
     def _build_menubar(self) -> QMenuBar:
         menubar = QMenuBar()
         file_menu = menubar.addMenu("&File")
         file_menu.addAction(self._install_action)
+        file_menu.addAction(self._uninstall_action)
 
         return menubar
-    
-    def _create_actions(self):
-        self._install_action = QAction('Install Mod(s)', self)
-        self._uninstall_action = QAction('Uninstall Mod(s)', self)
-        self._install_action.setToolTip("Install mod archives")
-        
 
     def _build_toolbar(self) -> QToolBar:
         toolbar = QToolBar()
@@ -69,7 +68,6 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self._uninstall_action)
         
         return toolbar
-
 
     def _build_body(self) -> QWidget:
         body = QWidget()
@@ -108,5 +106,5 @@ class MainWindow(QMainWindow):
         self._app_context.mods.install_mods(archive_list)
     
     def _on_uninstall_triggered(self):
-        pass
+        self._app_context.mods.uninstall_mods(self._mod_item_model.checked_mods)
                     

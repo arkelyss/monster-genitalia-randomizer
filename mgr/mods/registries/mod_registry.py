@@ -110,7 +110,7 @@ class ModRegistry(QObject):
             relative_path = Path(current_dir).relative_to(mod_dir)
             
             # If mod is a symlink, get the status
-            symlink_status = SymlinkStatus.NOT_A_SYMLINK
+            symlink_status = SymlinkStatus.NOT_A_SYMLINK # Assume not a symlink by default
             if relative_path.is_symlink():
                 if ignore_symlinks:
                     continue

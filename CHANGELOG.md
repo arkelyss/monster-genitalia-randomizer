@@ -7,6 +7,12 @@
 - Add custom seed control
 - Change user app_config.json to TOML format
 - Change config validation dialogs to be more user-friendly and understandable
+- Add logic to remove broken symlinks on startup
+
+## [1.0.0-alpha.6]
+### Added
+- Uninstall wiring to `main_window.py`
+- Mod display sync and uninstall logic to `mod_service.py`
 
 ## [1.0.0-alpha.5]
 ### Added

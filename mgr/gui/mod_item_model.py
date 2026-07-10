@@ -3,10 +3,13 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, override
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QPersistentModelIndex
+import loguru
 
 from mgr.core.app_context import AppContext
 from mgr.mods.mod_service import ModService
 from mgr.mods.models.loaded_mod import LoadedMod
+
+logger = loguru.logger
 
 
 class ColumnLabels(StrEnum):
@@ -66,6 +69,7 @@ class ModItemModel(QAbstractItemModel):
     @property
     def checked_mods(self) -> set[LoadedMod]:
         """The mods currently ticked — hand this to batch operations like uninstall."""
+        
         return set(self._checked)
 
     def _rebuild(self) -> None:
@@ -259,4 +263,5 @@ class ModItemModel(QAbstractItemModel):
         self.endResetModel()
 
     def _on_mods_changed(self):
+        logger.debug("Mods changed; refreshing")
         self.refresh()

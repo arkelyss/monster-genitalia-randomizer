@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 from typing import Self
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 import loguru
@@ -7,6 +8,7 @@ from mgr.configs.models.app_config import AppConfig
 from mgr.configs.models.nexus_mod_archive import NexusModArchive
 from mgr.configs.services.base_config_service import ConfigService
 from mgr.mods.mod_archive_installer import ArchiveExtractor, ExtractionTracker
+from mgr.mods.models.loaded_mod import LoadedMod
 from mgr.mods.registries.mod_registry import ModRegistry
 
 logger = loguru.logger
@@ -61,11 +63,12 @@ class ModService(QObject):
         nexus_archive_service: ConfigService[NexusModArchive]
     ) -> Self:
         registry = mod_registry(app_config_service, nexus_archive_service)
-        registry.load()
-        
-        return cls(registry, app_config_service, nexus_archive_service)
 
+        service = cls(registry, app_config_service, nexus_archive_service)
+        service.load_mods()
+        service.prune_orphaned_mods() # Prune orphans to avoid broken symlinks in the future
 
+        return service
 
     def install_mods(self, archive_files: list[Path]):
         self._thread = QThread()
@@ -82,11 +85,24 @@ class ModService(QObject):
         self._archive_extractor.on_progress.connect(self._on_install_progress)
         self._thread.start()
     
-    def uninstall_mods(self, mod_paths: list[Path]):  # pyright: ignore[reportUnusedParameter]
-        pass
+    def uninstall_mods(self, loaded_mods: set[LoadedMod]):
+        for mod in loaded_mods:
+            shutil.rmtree(mod.full_path, ignore_errors=True)
+            logger.debug(f'Removing mod {mod.full_path}')
+        self._refresh()
 
     def load_mods(self):
-        self._mod_registry.load()    
+        self._mod_registry.load()
+        self._refresh()
+
+    def prune_orphaned_mods(self):
+        for orphan in self._mod_registry.orphaned:
+            orphan.full_path.unlink(missing_ok=True)
+        self._refresh()
+
+    def _refresh(self):
+        self._mod_registry.load()
+        self.mods_changed.emit()
 
 
     
