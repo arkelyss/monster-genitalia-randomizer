@@ -1,19 +1,22 @@
 from pathlib import Path
 import shutil
 from typing import Self
-from PySide6.QtCore import QObject, QThread, Signal, Slot
+from PySide6.QtCore import QObject, QThread, Signal
 import loguru
 
 from mgr.configs.models.app_config import AppConfig
 from mgr.configs.models.nexus_mod_archive import NexusModArchive
 from mgr.configs.services.base_config_service import ConfigService
-from mgr.mods.mod_archive_installer import ArchiveExtractor, ExtractionTracker
+from mgr.mods.mod_archive_installer import ArchiveExtractor
 from mgr.mods.models.loaded_mod import LoadedMod
 from mgr.mods.registries.mod_registry import ModRegistry
 
 logger = loguru.logger
     
 class ModService(QObject):
+    install_started: Signal = Signal()
+    install_progress: Signal = Signal(object)
+    install_finished: Signal = Signal()
     mods_changed: Signal = Signal()
 
     def __init__(
@@ -45,16 +48,6 @@ class ModService(QObject):
     def registry(self):
         return self._mod_registry
 
-    @Slot()
-    def _on_install_finished(self):
-        print("install finished")
-        self.load_mods()
-        self.mods_changed.emit()
-    
-    @Slot()
-    def _on_install_progress(self, extraction_tracker: ExtractionTracker):
-        print(f"Current Archive Progress: {extraction_tracker.current_archive_progress_outof} ({extraction_tracker.current_archive_progress_percent}) ({extraction_tracker.global_archive_progress_percent})")
-
     @classmethod
     def create(
         cls,
@@ -72,17 +65,18 @@ class ModService(QObject):
 
     def install_mods(self, archive_files: list[Path]):
         self._thread = QThread()
-        self._archive_extractor = ArchiveExtractor()
+        self._archive_extractor = ArchiveExtractor(archive_files, self.mgr_mods_dir)
         self._archive_extractor.moveToThread(self._thread)
+        self._thread.started.connect(self._archive_extractor.install_archives)
+        
+        self._archive_extractor.extraction_finished.connect(self._thread.quit)
+        self._archive_extractor.extraction_finished.connect(self._archive_extractor.deleteLater)
+        self._archive_extractor.extraction_finished.connect(self.install_finished)
+        self._archive_extractor.extraction_finished.connect(self._refresh)
 
-        self._thread.started.connect(
-            lambda: self._archive_extractor.install_archives(archive_files, self.mgr_mods_dir)
-        )
-        self._archive_extractor.on_finished.connect(self._on_install_finished)
-        self._archive_extractor.on_finished.connect(self._thread.quit)
-        self._archive_extractor.on_finished.connect(self._archive_extractor.deleteLater)
-        self._archive_extractor.on_finished.connect(self._thread.deleteLater)
-        self._archive_extractor.on_progress.connect(self._on_install_progress)
+        self._thread.finished.connect(self._thread.deleteLater)
+
+        self._archive_extractor.extraction_progress.connect(self.install_progress)
         self._thread.start()
     
     def uninstall_mods(self, loaded_mods: set[LoadedMod]):
