@@ -13,8 +13,14 @@
 
 ## [1.0.0-alpha.7]
 ### Added
-- Added logic to `mod_service.py` for removing broken symlinks at runtime
-- Refactored `mod_archive_installer.py` to be more thread-friendly and provide better progress feedback
+- Broken symlink pruning at runtime for the MHW mod directory
+- More rarfile stubs
+
+### Changed
+- `mod_archive_installer.py` logic to be more thread-friendly and provide better progress feedback
+
+### Fixed
+- Bug in `mod_service.py` where ModService's install_progress signal was not properly typed
 
 ## [1.0.0-alpha.6]
 ### Added
