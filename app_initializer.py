@@ -19,13 +19,16 @@ from mgr.mods.registries.mod_registry import ModRegistry
 
 logger = loguru.logger
 
-class AppSetup(QObject):
+class AppInitializer(QObject):
     config_validation_errors: Signal = Signal(list[ConfigValidationReport])
     setup_complete: Signal = Signal(AppContext)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        
+    
+    # Dev Note: I am considering moving some of the lower-level state-change logic (like prune_orphaned_mods in mod_service)
+    # to run() so that it can easily be seen. This would make orchestration easier, because right now it's difficult to
+    # figure out where everything is.
     def run(self) -> AppContext:
         # Dev Note: Objects should instantiate fully, load() should transition states. Refactor later so this
         # philosophy holds true.
@@ -55,7 +58,9 @@ class AppSetup(QObject):
             nexus_archive_service
         )
 
-        return AppContext(app_config_service, nexus_archive_service, mod_service)
+        app_context = AppContext(app_config_service, nexus_archive_service, mod_service)
+
+        return app_context
 
     def _resolve_service_validation_errors[U: BaseModel](self, config_service: ConfigService[U]) -> None:
         try:

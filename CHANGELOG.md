@@ -2,12 +2,19 @@
 
 ## [unreleased]
 - Change name instances of "Nexus Mod Archive" to "Nexus Archive"
-- Add mod uninstaller
 - Add randomizer
 - Add custom seed control
 - Change user app_config.json to TOML format
 - Change config validation dialogs to be more user-friendly and understandable
-- Add logic to remove broken symlinks on startup
+- Add skip and GUI notification for size errors raised from _check_size_limits() in `mod_archive_installer.py` (currently terminates app)
+- Orchestrate state changes (like prune_orphaned_mods() in `mod_service.py`) from a higher place (such as `app_initializer.py`).
+  They are currently difficult to locate and troubleshoot.
+- Add proper logging to all modules.
+
+## [1.0.0-alpha.7]
+### Added
+- Added logic to `mod_service.py` for removing broken symlinks at runtime
+- Refactored `mod_archive_installer.py` to be more thread-friendly and provide better progress feedback
 
 ## [1.0.0-alpha.6]
 ### Added

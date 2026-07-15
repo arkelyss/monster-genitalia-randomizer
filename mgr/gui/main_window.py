@@ -2,19 +2,23 @@ from pathlib import Path
 
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QPushButton, QStackedWidget, QStatusBar, QToolBar, QWidget, QMainWindow
+import loguru
 
-from app_setup import AppSetup
+from app_initializer import AppInitializer
 from mgr.core.app_context import AppContext
 from mgr.core.constants import APP_VERSION
 from mgr.gui.mod_item_model import ModItemModel
 from mgr.gui.mod_tree_view import ModTreeView
+from mgr.mods.mod_archive_installer import InstallProgress
+
+logger = loguru.logger
 
 class MainWindow(QMainWindow):
-    def __init__(self, app_setup: AppSetup):
+    def __init__(self, app_initializer: AppInitializer):
         super().__init__()
         # App Context
-        self._setup: AppSetup = app_setup
-        self._app_context: AppContext = self._setup.run()
+        self._initializer: AppInitializer = app_initializer
+        self._app_context: AppContext = self._initializer.run()
 
         # Window configuration
         self.setWindowTitle(f"Monster Genitalia Randomizer v{APP_VERSION}")
@@ -101,10 +105,14 @@ class MainWindow(QMainWindow):
     def _connect_signals(self):
         self._mod_tree_view.mod_archives_dropped.connect(self._on_archives_dropped)
         self._uninstall_action.triggered.connect(self._on_uninstall_triggered)
+        self._app_context.mod_install_progress.connect(self._on_mod_install_progress)
 
     def _on_archives_dropped(self, archive_list: list[Path]):
         self._app_context.mods.install_mods(archive_list)
     
     def _on_uninstall_triggered(self):
         self._app_context.mods.uninstall_mods(self._mod_item_model.checked_mods)
+
+    def _on_mod_install_progress(self, install_progress: InstallProgress):
+        logger.debug(f'Working on {Path(install_progress.current_file).name} from {install_progress.archive_name} - {install_progress.archive_fraction}')
                     

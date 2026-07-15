@@ -193,6 +193,7 @@ _BAD_CHARS = ...
 RC_BAD_CHARS_UNIX = ...
 RC_BAD_CHARS_WIN32 = ...
 FORCE_TOOL = ...
+
 def get_rar_version(xfile) -> Literal[3, 5, 0]:
     """Check quickly whether file is rar archive.
     """
@@ -574,7 +575,7 @@ class RarFile:
         """
         ...
     
-    def getinfo(self, name):
+    def getinfo(self, name: str) -> RarInfo:
         """Return RarInfo for file.
         """
         ...
@@ -614,7 +615,7 @@ class RarFile:
         """
         ...
     
-    def read(self, name, pwd=...) -> bytes:
+    def read(self, name: str, pwd=...) -> bytes:
         """Return uncompressed data for archive entry.
 
         For longer files using :meth:`~RarFile.open` may be better idea.
