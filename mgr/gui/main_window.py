@@ -1,15 +1,15 @@
 from pathlib import Path
-
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QPushButton, QStackedWidget, QStatusBar, QToolBar, QWidget, QMainWindow
+from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QMenuBar, QPushButton, QStackedWidget, QStatusBar, QToolBar, QWidget, QMainWindow
 import loguru
 
 from app_initializer import AppInitializer
 from mgr.core.app_context import AppContext
-from mgr.core.constants import APP_VERSION
+from mgr.core.constants import APP_VERSION, SYSTEM_DOWNLOADS_DIR
 from mgr.gui.mod_item_model import ModItemModel
 from mgr.gui.mod_tree_view import ModTreeView
 from mgr.mods.mod_archive_installer import InstallProgress
+from mgr.mods.models.enums import SupportedArchiveTypes
 
 logger = loguru.logger
 
@@ -29,12 +29,17 @@ class MainWindow(QMainWindow):
         self._mod_tree_view: ModTreeView = ModTreeView(self._mod_item_model)
         self.stack: QStackedWidget = QStackedWidget()
 
-        # Attribute variables assigned later
-        self._status_label: QLabel
-        self._install_action: QAction
-        self._uninstall_action: QAction
+        self._status_label: QLabel = QLabel()
 
-        self._create_actions()
+        # Actions
+        self._install_action: QAction = QAction('Install Mods', self)
+        self._install_action.triggered.connect(self._on_install_mods_button)
+        self._install_action.setToolTip("Install mod archives")
+
+        self._uninstall_action: QAction = QAction('Uninstall Mods', self)
+
+        
+
         self._build_ui()
         self._connect_signals()
         self._mod_item_model.refresh()
@@ -47,15 +52,10 @@ class MainWindow(QMainWindow):
 
     def _build_status_bar(self) -> QStatusBar:
         status_bar = QStatusBar()
-        self._status_label = QLabel("Ready")
+        self._status_label.setText('Ready')
         status_bar.addWidget(self._status_label)
 
         return status_bar
-
-    def _create_actions(self) -> None:
-        self._install_action = QAction('Install Mod(s)', self)
-        self._uninstall_action = QAction('Uninstall Mod(s)', self)
-        self._install_action.setToolTip("Install mod archives")
 
     def _build_menubar(self) -> QMenuBar:
         menubar = QMenuBar()
@@ -104,15 +104,32 @@ class MainWindow(QMainWindow):
 
     def _connect_signals(self):
         self._mod_tree_view.mod_archives_dropped.connect(self._on_archives_dropped)
-        self._uninstall_action.triggered.connect(self._on_uninstall_triggered)
+        self._uninstall_action.triggered.connect(self._on_uninstall_mods_button)
         self._app_context.mod_install_progress.connect(self._on_mod_install_progress)
 
     def _on_archives_dropped(self, archive_list: list[Path]):
         self._app_context.mods.install_mods(archive_list)
     
-    def _on_uninstall_triggered(self):
+    def _on_uninstall_mods_button(self):
         self._app_context.mods.uninstall_mods(self._mod_item_model.checked_mods)
 
     def _on_mod_install_progress(self, install_progress: InstallProgress):
         logger.debug(f'Working on {Path(install_progress.current_file).name} from {install_progress.archive_name} - {install_progress.archive_fraction}')
+
+    def _on_install_mods_button(self) -> None:
+        archive_filter = " ".join([f'*{suffix}' for suffix in SupportedArchiveTypes])
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        dialog.setViewMode(QFileDialog.ViewMode.Detail)
+        dialog.setDirectory(str(SYSTEM_DOWNLOADS_DIR))
+        dialog.setNameFilter(archive_filter)
+        dialog.setModal(True)
+
+        if dialog.exec():
+            if selected_archives := dialog.selectedFiles():
+                archive_files = [Path(archive) for archive in selected_archives]
+                self._app_context.mods.install_mods(archive_files)
+
+            
+
                     

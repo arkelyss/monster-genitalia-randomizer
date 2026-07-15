@@ -10,7 +10,7 @@ from mgr.configs.services.base_config_service import ConfigService, ConfigValida
 from mgr.configs.services.layered_config_service import LayeredConfigService
 from mgr.configs.sources.json_config_source import JsonConfigSource
 from mgr.core.app_context import AppContext
-from mgr.core.constants import APP_CONFIG_FILE, APP_NEXUS_ARCHIVE_FILE, LOCAL_APP_CONFIG_FILE, LOCAL_NEXUS_INDEX_FILE
+from mgr.core.constants import APP_CONFIG_FILE, APP_NEXUS_ARCHIVE_FILE, USER_APP_CONFIG_FILE, USER_NEXUS_ARCHIVE_FILE
 from mgr.gui.model_form import ModelForm
 from mgr.mods.mod_service import ModService
 import loguru
@@ -35,14 +35,14 @@ class AppInitializer(QObject):
         app_config_service = LayeredConfigService.create(
             AppConfig,
             JsonConfigSource(APP_CONFIG_FILE),
-            JsonConfigSource(LOCAL_APP_CONFIG_FILE)
+            JsonConfigSource(USER_APP_CONFIG_FILE)
         )
 
         # Dev Note: Using the LayeredConfigService as a standin manager for the database. Will refine later.
         nexus_archive_service = LayeredConfigService.create(
             NexusModArchive,
             JsonConfigSource(APP_NEXUS_ARCHIVE_FILE),
-            JsonConfigSource(LOCAL_NEXUS_INDEX_FILE)
+            JsonConfigSource(USER_NEXUS_ARCHIVE_FILE)
         )
 
         # Use resolve_service_validation_errors to handle logic from this point
