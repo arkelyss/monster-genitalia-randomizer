@@ -2,41 +2,38 @@
 
 This project is currently in early alpha. Designs, features, and functionality may break or change at any time. If you would like to help shape its development, you can participate in the following ways:
 
-- Alpha testing by cloning the 'develop' branch and using the program.
-- Reporting bugs or submitting PRs.
-- Requesting features, offering suggestions, and sharing feedback.
-- Creating UI assets such as icons, art, and screenshots.
+- Alpha test by cloning the 'develop' branch and using the program.
+- Report bugs or submitting PRs.
+- Request features, offer suggestions, and share feedback.
+- Create UI assets such as icons, art, and screenshots.
 - Donations of any amount so that I can stay caffeinated.
 
 
 # Introduction
-Monster Genitalia Randomizer is the official successor to an old cli app created for Monster Hunter World, published directly to NexusMods (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, the original app was a randomizer for Monster Hunter World genitalia mods. It provided features like randomized mod deployment, synchronized results via seed sharing, and the ability to customize preferences with keyword filters.
+Monster Genitalia Randomizer is the official successor to an old cli app created for Monster Hunter World, published directly to NexusMods (https://www.nexusmods.com/monsterhunterworld/mods/7102). At its core, the original app was a randomizer for Monster Hunter World genitalia mods. It provided features like randomized mod deployment, synchronized results via seed sharing (for co-op experiences), and the ability to customize preferences with keyword filters.
 
-The original app was limited in scope, buggy, and not user-friendly.  This project aims to provide more features and quality of life additions, such as:
+The original app was limited in scope, buggy, and not user-friendly. This project aims to provide more features and quality of life additions, such as:
 
 - A simple GUI
 - Automatic mod installation (drag and drop supported)
 - Timer-based randomized while client is running
-- Shared coop settings for total synchronization
+- Sharable co-op settings for easy synchronization
 - Community participation and collaboration
 - Expanded filters for in-depth customization
 - Lightweight symlink deployment system
 
 
 # Alpha Testing Guidance
-As an alpha tester, you will be exploring uncharted territory. Some days the everything might run perfectly, and other times nothing will function at all. You may encounter features and designs you love, only to have them snatched away during a future update.
-
-Don't let this scare you; use it to your advantage! Instead of trying to make things work, see if you can find ways to break them. If you discover something you love and it gets removed, start a discussion to bring it back. Alpha testing is for thinking outside the box; we can get more organized when Beta rolls around.
+As an alpha tester, you will be exploring uncharted territory. The program's stability will constantly fluctuate, structures will change, and bugs will occur. Your goal is to break the system, submit reports, and lobby for the features you want or enjoyed.
 
 **When in doubt, follow these suggestions:**
-1. Update frequently. Changes are constantly happening, so check back daily!
-2. Try to break things instead of trying to make them work.
-3. Look beyond bugs and code, sometimes it's about what you want.
+1. Update frequently. The `develop` branch is constantly changing, so check weekly.
+2. Attempt to break things instead of trying to make them work.
+3. In addition to finding bugs, pay attention to which features you like, dislike, or want to see.
 4. Use GitHub to make your voice heard:
     - Report bugs here: https://github.com/arkelyss/monster-genitalia-randomizer/issues
     - Discuss here: https://github.com/arkelyss/monster-genitalia-randomizer/discussions
     - Submit your own code here: https://github.com/arkelyss/monster-genitalia-randomizer/pulls
-    - Contact the dev here: arkelysstm@gmail.com
 
 
 # Requirements
