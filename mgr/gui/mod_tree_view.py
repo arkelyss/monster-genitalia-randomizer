@@ -8,7 +8,7 @@ from PySide6.QtCore import QAbstractItemModel, QPoint, Qt, Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QMouseEvent
 from PySide6.QtWidgets import QAbstractItemView, QHeaderView, QMenu, QTreeView, QWidget
 
-from mgr.core.constants import CHECKMARK_PNG
+from mgr.core.constants import APP_CHECKMARK_IMAGE
 from mgr.mods.models.enums import SupportedArchiveTypes
 
 # Columns at this index or below are shown by default; anything higher starts hidden.
@@ -64,7 +64,7 @@ class ModTreeView(QTreeView):
             }}
 
             QTreeView::indicator:checked {{
-                image: url({CHECKMARK_PNG});
+                image: url({APP_CHECKMARK_IMAGE});
                 padding: 2px;
             }}
         """)

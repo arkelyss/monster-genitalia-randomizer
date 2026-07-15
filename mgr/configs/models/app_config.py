@@ -4,7 +4,7 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticUseDefault
 
-from mgr.core.constants import LOCAL_MODS_DIR, MHW_DIR_NAME, MHW_EXE_NAME, MHW_MODS_DIR_EXTENSION
+from mgr.core.constants import USER_MODS_DIR, MHW_DIR_NAME, MHW_EXE_NAME, MHW_MODS_DIR_EXTENSION
 
 
 class AppConfig(BaseModel):
@@ -13,7 +13,7 @@ class AppConfig(BaseModel):
 
     mhw_dir: Path = Field(json_schema_extra={"display_name": "MHW Install Location"})
     mgr_mods_dir: Path = Field(
-        default=LOCAL_MODS_DIR,
+        default=USER_MODS_DIR,
         json_schema_extra={"display_name": "Local Mods Directory"},
     )
 

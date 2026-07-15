@@ -1,5 +1,5 @@
 """Constants available for use across all of MGR"""
-from platformdirs import user_data_dir
+from platformdirs import PlatformDirs
 from pathlib import Path
 
 from importlib.metadata import version, PackageNotFoundError
@@ -9,19 +9,16 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
+
 # App information
+platform_dirs = PlatformDirs("Monster Genitalia Randomizer")
 APP_VERSION: str = __version__
 
-# The current drive's root. On Linux this is /, and on Windows it's almost always C:\
+# System Files and Directories
 SYSTEM_ROOT: Path = Path(Path.cwd().anchor)
-PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
-APP_ROOT_DIR: Path = Path(__file__).parent.parent
-APP_ASSETS_DIR: Path = APP_ROOT_DIR / "assets"
-APP_FONTS_DIR: Path = APP_ASSETS_DIR / "fonts"
-APP_IMAGES_DIR: Path = APP_ASSETS_DIR / "images"
+SYSTEM_DOWNLOADS_DIR = platform_dirs.user_downloads_path
 
-
-# Useful MHW information such as directories, filenames, supported file types, and potential installation locations.
+# MHW Files and Directories
 MHW_DIR_NAME = "Monster Hunter World"
 MHW_EXE_NAME = "MonsterHunterWorld.exe"
 MHW_MODS_DIR_EXTENSION = Path("nativePC") / "em"
@@ -35,24 +32,25 @@ POSSIBLE_MHW_EXE_LOCATIONS: list[Path] = [
     *Path(SYSTEM_ROOT / "home").glob("*/.steam/steam/steamapps/common/Monster Hunter World"),
 ]
 
-# MGR base files
-APP_CONFIG_DIR = Path('mgr') / 'configs'
+# MGR Files and Directories
+APP_ROOT = Path('mgr')
+
+APP_ASSETS_DIR = APP_ROOT / 'assets'
+APP_IMAGES_DIR = APP_ASSETS_DIR / 'images'
+APP_CONFIG_DIR = APP_ROOT / 'configs'
+
 APP_CONFIG_FILE = APP_CONFIG_DIR / 'app_config.json'
 APP_NEXUS_ARCHIVE_FILE = APP_CONFIG_DIR / 'nexus_archive.json'
+APP_CHECKMARK_IMAGE = APP_IMAGES_DIR / 'checkmark.png'
 
-# User data directories and files.
-LOCAL_ENVIRONMENT_DIR = Path(user_data_dir("Monster Genitalia Randomizer"))
-LOCAL_MODS_DIR = LOCAL_ENVIRONMENT_DIR / "mods" / "em"
-LOCAL_LOG_DIR = LOCAL_ENVIRONMENT_DIR / "logs"
-LOCAL_CONFIG_DIR = LOCAL_ENVIRONMENT_DIR / "configs"
+# User Files and Directories
+USER_DATA_DIR = platform_dirs.user_data_path
+USER_MODS_DIR = USER_DATA_DIR / "mods" / "em"
+USER_LOG_DIR = USER_DATA_DIR / "logs"
+USER_LOG_FILE = USER_LOG_DIR / "app_log.log"
+USER_CONFIG_DIR = USER_DATA_DIR / "configs"
 
-LOCAL_APP_CONFIG_FILE = LOCAL_CONFIG_DIR / "app_config.json"
-LOCAL_NEXUS_INDEX_FILE = LOCAL_CONFIG_DIR / "nexus_index.json"
-LOCAL_LOG_FILE = LOCAL_LOG_DIR / "app_log.log"
-
-# Assets
-FONT_FIRLEST_REGULAR: Path = APP_FONTS_DIR / "Firlest-Regular.otf"
-PALICO_PNG: Path = APP_IMAGES_DIR / "cat.png"
-CHECKMARK_PNG: Path = APP_IMAGES_DIR / 'checkmark.png'
+USER_APP_CONFIG_FILE = USER_CONFIG_DIR / "app_config.json"
+USER_NEXUS_ARCHIVE_FILE = USER_CONFIG_DIR / "nexus_index.json"
 
 
