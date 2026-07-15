@@ -11,6 +11,13 @@
   They are currently difficult to locate and troubleshoot.
 - Add proper logging to all modules.
 
+## [1.0.0-alpha.8]
+### Added
+- Mod archive selection dialog for "Install Mods" button
+
+### Changed
+- Variable names and logic in `constants.py`
+
 ## [1.0.0-alpha.7]
 ### Added
 - Broken symlink pruning at runtime for the MHW mod directory
